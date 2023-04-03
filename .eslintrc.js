@@ -5,7 +5,8 @@ module.exports = {
     },
     "extends": [
         "eslint:recommended",
-        "plugin:@typescript-eslint/recommended"
+        "plugin:@typescript-eslint/recommended",
+        "prettier"
     ],
     "overrides": [
     ],
@@ -15,10 +16,11 @@ module.exports = {
         "sourceType": "module"
     },
     "plugins": [
-        "@typescript-eslint"
+        "@typescript-eslint",
+        "prettier"
     ],
     "rules": {
-        "no-dupe-keys": "error",
+        "no-dupe-keys": 2,
         "no-unmodified-loop-condition": 2,
         "no-undef": 1,
         "no-unused-vars": 1,
@@ -27,5 +29,6 @@ module.exports = {
         "no-multiple-empty-lines": 1,
         "no-multi-str": 0,
         "no-irregular-whitespace": 0,
+        "prettier/prettier": 0,
     }
 }
