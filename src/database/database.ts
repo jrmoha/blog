@@ -7,8 +7,10 @@ const pool = new Pool({
   user: config.database.user,
   password: config.database.password,
   port: parseInt(config.database.port as string, 10),
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
 });
-
 pool.addListener('error', (err) => {
   console.log(`Error while connecting to database ${err.message}`);
 });
