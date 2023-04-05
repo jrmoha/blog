@@ -1,6 +1,6 @@
 import db from '../database/database';
 import User from '../types/user_type';
-import Error from '../interfaces/error.interface';
+import Error from '../interfaces/error';
 import bcryptjs from 'bcryptjs';
 class userModel {
   userExists(username: string, email: string): Promise<boolean> {
@@ -41,7 +41,8 @@ class userModel {
     email: string,
     first_name: string,
     last_name: string,
-    birth_date: Date
+    birth_date: Date,
+    session_id: string
   ): Promise<User> {
     const userEx = await this.userExists(username, email);
     if (userEx) {
@@ -63,7 +64,8 @@ class userModel {
               birth_date,
             ])
             .then((result) => {
-              console.log(result.rows[0]);
+              this.addActivity(username, 'You Created This An Account.');
+              this.insertSession(username, session_id);
               resolve(result.rows[0]);
             })
             .catch((err) => {
@@ -76,7 +78,11 @@ class userModel {
       });
     }
   }
-  async authenticateUser(username: string, password: string): Promise<User> {
+  async authenticateUser(
+    username: string,
+    password: string,
+    session_id: string
+  ): Promise<User> {
     return new Promise((resolve, reject) => {
       db.connect().then((connection) => {
         const query = `SELECT username,email,password,first_name,last_name FROM users WHERE username=$1`;
@@ -96,6 +102,8 @@ class userModel {
               const isMatch = bcryptjs.compareSync(password, user.password);
               delete user.password;
               if (isMatch) {
+                this.addActivity(username, 'You Logged In');
+                this.insertSession(username, session_id);
                 resolve(user);
               } else {
                 err.message = `This Password Isn't Correct.`;
@@ -105,6 +113,144 @@ class userModel {
           })
           .catch((err) => {
             reject(`Error: ${err.message}`);
+          })
+          .finally(() => {
+            connection.release();
+          });
+      });
+    });
+  }
+  addActivity(username: string, activity_title: string): Promise<object> {
+    return new Promise((resolve, reject) => {
+      db.connect().then((connection) => {
+        const query = `INSERT INTO activity (username,activity) VALUES ($1,$2)`;
+        connection
+          .query(query, [username, activity_title])
+          .then(() => {
+            resolve({ status: 'ok' });
+          })
+          .catch((err) => {
+            reject(err);
+          })
+          .finally(() => {
+            connection.release();
+          });
+      });
+    });
+  }
+  deleteActivity(username: string, activity_title: string): Promise<object> {
+    return new Promise((resolve, reject) => {
+      db.connect().then((connection) => {
+        const query = `DELETE FROM activity WHERE username=$1 AND activity=$2`;
+        connection
+          .query(query, [username, activity_title])
+          .then(() => {
+            resolve({ status: 'ok' });
+          })
+          .catch((err) => {
+            reject(err);
+          })
+          .finally(() => {
+            connection.release();
+          });
+      });
+    });
+  }
+  getActivities(username: string): Promise<string[]> {
+    return new Promise((resolve, reject) => {
+      db.connect().then((connection) => {
+        const query = `SELECT activity FROM activity WHERE username=$1`;
+        connection
+          .query(query, [username])
+          .then((result) => {
+            resolve(result.rows);
+          })
+          .catch((err) => {
+            reject(err);
+          })
+          .finally(() => {
+            connection.release();
+          });
+      });
+    });
+  }
+  insertSession(username: string, session_id: string): Promise<object> {
+    return new Promise((resolve, reject) => {
+      db.connect().then((connection) => {
+        const query = `INSERT INTO user_session(username,session_id) VALUES($1,$2)`;
+        connection
+          .query(query, [username, session_id])
+          .then(() => {
+            resolve({ status: 'ok' });
+          })
+          .catch((err) => {
+            reject(err);
+          })
+          .finally(() => {
+            connection.release();
+          });
+      });
+    });
+  }
+  search(username: string, search_title: string): Promise<object> {
+    return new Promise((resolve, reject) => {
+      db.connect().then((connection) => {
+        const query = `INSERT INTO search(username,search_title) VALUES ($1,$2)`;
+        connection
+          .query(query, [username, search_title])
+          .then(() => {
+            this.addActivity(username, `You Searched For ${search_title}`).then(
+              () => {
+                resolve({ status: 'ok' });
+              }
+            );
+          })
+          .catch((err) => {
+            reject(err);
+          })
+          .finally(() => {
+            connection.release();
+          });
+      });
+    });
+  }
+  deleteSearch(username: string, search_title: string): Promise<object> {
+    return new Promise((resolve, reject) => {
+      db.connect().then((connection) => {
+        const query = `DELETE FROM search WHERE username=$1 AND search_title=$2 ORDER BY search_date DESC LIMIT 1`;
+        connection
+          .query(query, [username, search_title])
+          .then(() => {
+            resolve({ status: 'ok' });
+          })
+          .catch((err) => {
+            reject(err);
+          })
+          .finally(() => {
+            connection.release();
+          });
+      });
+    });
+  }
+  follow(
+    follower_username: string,
+    followed_username: string
+  ): Promise<object> {
+    return new Promise((resolve, reject) => {
+      db.connect().then((connection) => {
+        const query = `INSERT INTO follow(follower_username,followed_username) VALUES ($1,$2)`;
+        connection
+          .query(query, [follower_username, followed_username])
+          .then(() => {
+            this.addActivity(
+              follower_username,
+              `You Followed ${followed_username}`
+            ).then(() => {
+              resolve({ status: 'ok' });
+            });
+          })
+          .catch((err) => {
+            reject(err);
           })
           .finally(() => {
             connection.release();
