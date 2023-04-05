@@ -159,7 +159,7 @@ class userModel {
   getActivities(username: string): Promise<string[]> {
     return new Promise((resolve, reject) => {
       db.connect().then((connection) => {
-        const query = `SELECT activity FROM activity WHERE username=$1`;
+        const query = `SELECT activity,activity_date FROM activity WHERE username=$1`;
         connection
           .query(query, [username])
           .then((result) => {
@@ -195,7 +195,7 @@ class userModel {
   search(username: string, search_title: string): Promise<object> {
     return new Promise((resolve, reject) => {
       db.connect().then((connection) => {
-        const query = `INSERT INTO search(username,search_title) VALUES ($1,$2)`;
+        const query = `INSERT INTO user_search(username,search) VALUES ($1,$2)`;
         connection
           .query(query, [username, search_title])
           .then(() => {
@@ -214,10 +214,29 @@ class userModel {
       });
     });
   }
+  searchHistory(username: string): Promise<string[]> {
+    return new Promise((resolve, reject) => {
+      db.connect().then((connection) => {
+        const query = `SELECT search FROM user_search WHERE username=$1 ORDER BY search_date DESC`;
+        connection
+          .query(query, [username])
+          .then((result) => {
+            resolve(result.rows);
+          })
+          .catch((err) => {
+            reject(err);
+          })
+          .finally(() => {
+            connection.release();
+          });
+      });
+    });
+  }
   deleteSearch(username: string, search_title: string): Promise<object> {
     return new Promise((resolve, reject) => {
       db.connect().then((connection) => {
-        const query = `DELETE FROM search WHERE username=$1 AND search_title=$2 ORDER BY search_date DESC LIMIT 1`;
+        let query = `DELETE FROM user_search `;
+        query += `WHERE search IN (SELECT search FROM user_search WHERE username=$1 AND search=$2 ORDER BY search_date DESC LIMIT 1)`;
         connection
           .query(query, [username, search_title])
           .then(() => {
@@ -238,13 +257,67 @@ class userModel {
   ): Promise<object> {
     return new Promise((resolve, reject) => {
       db.connect().then((connection) => {
-        const query = `INSERT INTO follow(follower_username,followed_username) VALUES ($1,$2)`;
+        const check_query = `SELECT * FROM follow WHERE follower_username=$1 AND followed_username=$2 AND follow_status=0`;
         connection
-          .query(query, [follower_username, followed_username])
+          .query(check_query, [follower_username, followed_username])
+          .then((result) => {
+            if (result.rows.length > 0) {
+              reject(`This Follower Already Been Deleted.`);
+            } else {
+              const query = `INSERT INTO follow(follower_username,followed_username) VALUES ($1,$2)`;
+              connection
+                .query(query, [follower_username, followed_username])
+                .then(() => {
+                  this.addActivity(
+                    follower_username,
+                    `You Followed ${followed_username}`
+                  ).then(() => {
+                    resolve({ status: 'ok' });
+                  });
+                })
+                .catch((err) => {
+                  reject(err);
+                })
+                .finally(() => {
+                  connection.release();
+                });
+            }
+          });
+      });
+    });
+  }
+  unfollow(username: string, unfollowed: string): Promise<object> {
+    return new Promise((resolve, reject) => {
+      db.connect().then((connection) => {
+        const query = `DELETE FROM follow WHERE follower_username=$1 AND followed_username=$2`;
+        connection
+          .query(query, [username, unfollowed])
           .then(() => {
-            this.addActivity(
-              follower_username,
-              `You Followed ${followed_username}`
+            this.deleteActivity(username, `You Unfollowed ${unfollowed}`).then(
+              () => {
+                resolve({ status: 'ok' });
+              }
+            );
+          })
+          .catch((err) => {
+            reject(err);
+          })
+          .finally(() => {
+            connection.release();
+          });
+      });
+    });
+  }
+  deleteFollower(username: string, follower: string): Promise<object> {
+    return new Promise((resolve, reject) => {
+      db.connect().then((connection) => {
+        const query = `UPDATE follow SET follow_status=0 WHERE follower_username=$1 AND followed_username=$2`;
+        connection
+          .query(query, [follower, username])
+          .then(() => {
+            this.deleteActivity(
+              username,
+              `You Removed ${follower} From Followers`
             ).then(() => {
               resolve({ status: 'ok' });
             });
