@@ -65,6 +65,7 @@ class userModel {
             ])
             .then((result) => {
               this.addActivity(username, 'You Created This An Account.');
+              this.initOptions(username);
               this.insertSession(username, session_id);
               resolve(result.rows[0]);
             })
@@ -293,7 +294,7 @@ class userModel {
         connection
           .query(query, [username, unfollowed])
           .then(() => {
-            this.deleteActivity(username, `You Unfollowed ${unfollowed}`).then(
+            this.addActivity(username, `You Unfollowed ${unfollowed}`).then(
               () => {
                 resolve({ status: 'ok' });
               }
@@ -315,12 +316,52 @@ class userModel {
         connection
           .query(query, [follower, username])
           .then(() => {
-            this.deleteActivity(
+            this.addActivity(
               username,
               `You Removed ${follower} From Followers`
             ).then(() => {
               resolve({ status: 'ok' });
             });
+          })
+          .catch((err) => {
+            reject(err);
+          })
+          .finally(() => {
+            connection.release();
+          });
+      });
+    });
+  }
+  initOptions(username: string): Promise<object> {
+    return new Promise((resolve, reject) => {
+      db.connect().then((connection) => {
+        const query = `INSERT INTO options (username) VALUES ($1)`;
+        connection
+          .query(query, [username])
+          .then(() => {
+            resolve({ status: 'ok' });
+          })
+          .catch((err) => {
+            reject(err);
+          })
+          .finally(() => {
+            connection.release();
+          });
+      });
+    });
+  }
+  editOptions(
+    username: string,
+    option: string,
+    value: string
+  ): Promise<object> {
+    return new Promise((resolve, reject) => {
+      db.connect().then((connection) => {
+        const query = `UPDATE options SET ${option}=$1 WHERE username=$2`;
+        connection
+          .query(query, [value, username])
+          .then(() => {
+            resolve({ status: 'ok' });
           })
           .catch((err) => {
             reject(err);
