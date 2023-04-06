@@ -1,4 +1,4 @@
-import db from '../database/database';
+import db from '../database';
 import User from '../types/user_type';
 import Error from '../interfaces/error';
 import bcryptjs from 'bcryptjs';
@@ -41,7 +41,6 @@ class userModel {
     first_name: string,
     last_name: string,
     birth_date: Date,
-    session_id: string
   ): Promise<User> {
     const userEx = await this.userExists(username, email);
     if (userEx) {
@@ -63,9 +62,9 @@ class userModel {
               birth_date,
             ])
             .then((result) => {
-              this.addActivity(username, 'You Created This An Account.');
-              this.initOptions(username);
-              this.insertSession(username, session_id);
+              // this.addActivity(username, 'You Created This An Account.');
+              // this.initOptions(username);
+              // this.insertSession(username, session_id);
               resolve(result.rows[0]);
             })
             .catch((err) => {
@@ -81,7 +80,6 @@ class userModel {
   async authenticateUser(
     username: string,
     password: string,
-    session_id: string
   ): Promise<User> {
     return new Promise((resolve, reject) => {
       db.connect().then((connection) => {
@@ -102,8 +100,8 @@ class userModel {
               const isMatch = bcryptjs.compareSync(password, user.password);
               delete user.password;
               if (isMatch) {
-                this.addActivity(username, 'You Logged In');
-                this.insertSession(username, session_id);
+                // this.addActivity(username, 'You Logged In');
+                // this.insertSession(username, session_id);
                 resolve(user);
               } else {
                 err.message = `This Password Isn't Correct.`;
@@ -199,11 +197,11 @@ class userModel {
         connection
           .query(query, [username, search_title])
           .then(() => {
-            this.addActivity(username, `You Searched For ${search_title}`).then(
-              () => {
-                resolve({ status: 'ok' });
-              }
-            );
+            // this.addActivity(username, `You Searched For ${search_title}`).then(
+            // () => {
+            resolve({ status: 'ok' });
+            // }
+            // );
           })
           .catch((err) => {
             reject(err);
@@ -268,12 +266,12 @@ class userModel {
               connection
                 .query(query, [follower_username, followed_username])
                 .then(() => {
-                  this.addActivity(
-                    follower_username,
-                    `You Followed ${followed_username}`
-                  ).then(() => {
-                    resolve({ status: 'ok' });
-                  });
+                  // this.addActivity(
+                  // follower_username,
+                  // `You Followed ${followed_username}`
+                  // ).then(() => {
+                  resolve({ status: 'ok' });
+                  // });
                 })
                 .catch((err) => {
                   reject(err);
@@ -293,11 +291,11 @@ class userModel {
         connection
           .query(query, [username, unfollowed])
           .then(() => {
-            this.addActivity(username, `You Unfollowed ${unfollowed}`).then(
-              () => {
-                resolve({ status: 'ok' });
-              }
-            );
+            // this.addActivity(username, `You Unfollowed ${unfollowed}`).then(
+            //   () => {
+            resolve({ status: 'ok' });
+            // }
+            // );
           })
           .catch((err) => {
             reject(err);
@@ -315,12 +313,12 @@ class userModel {
         connection
           .query(query, [follower, username])
           .then(() => {
-            this.addActivity(
-              username,
-              `You Removed ${follower} From Followers`
-            ).then(() => {
+            // this.addActivity(
+            //   username,
+            //   `You Removed ${follower} From Followers`
+            // ).then(() => {
               resolve({ status: 'ok' });
-            });
+            // });
           })
           .catch((err) => {
             reject(err);
@@ -373,4 +371,4 @@ class userModel {
   }
 }
 
-export default userModel;
+export default new userModel();

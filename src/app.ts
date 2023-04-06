@@ -1,7 +1,7 @@
 import express, { Application, Request, Response } from 'express';
 import config from './config/config';
 import userModel from './models/userModel';
-const User = new userModel();
+// const User = new userModel();
 const app: Application = express();
 const port: number = config.PORT;
 app.use(express.json());

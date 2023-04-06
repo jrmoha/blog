@@ -31,5 +31,9 @@ module.exports = {
         "no-multi-str": 0,
         "no-irregular-whitespace": 0,
         "prettier/prettier": 0,
-    }
+    },
+    "ignorePatterns": [
+        "node_modules/",
+        "dist/",
+    ]
 }
