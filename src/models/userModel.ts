@@ -19,11 +19,10 @@ class userModel {
             else {
               if (result.rows[0].username == username) {
                 err.message = 'This Username Is Used By Another User';
-                reject(err);
               } else if (result.rows[0].email == email) {
                 err.message = 'This Email Is Used By Another User';
-                reject(err);
               }
+              reject(err);
             }
           })
           .catch((err) => {
