@@ -1,24 +1,324 @@
 import db from '../database';
 import Post from '../types/post_type';
-
+import Comment from '../types/comment_type';
+import Error from '../interfaces/error';
 class postModel {
-  createPost(username: string, content: string): Promise<Post> {
-    return new Promise((resolve, reject) => {
-      db.connect().then((connection) => {
-        const query = `INSERT INTO post (username,post_content) VALUES ($1,$2) RETURNING *`;
-        connection
-          .query(query, [username, content])
-          .then((result) => {
-            resolve(result.rows[0]);
-          })
-          .catch((err) => {
-            reject(err);
-          })
-          .finally(() => {
-            connection.release();
-          });
+  async getPost(post_id: number): Promise<Post> {
+    try {
+      const connection = await db.connect();
+      const query = `SELECT * FROM post WHERE post_id=$1`;
+      const result = await connection.query(query, [post_id]);
+      connection.release();
+      if (result.rows.length) {
+        return result.rows[0];
+      } else {
+        throw { message: 'Post Not Found', status: 404 };
+      }
+    } catch (err: any) {
+      const error: Error = {
+        message: err.message,
+        status: err.status,
+      };
+      throw error;
+    }
+  }
+  async getPosts(username: string): Promise<Post[]> {
+    try {
+      const connection = await db.connect();
+      const query = `SELECT * FROM post WHERE username=$1`;
+      const result = await connection.query(query, [username]);
+      connection.release();
+      if (result.rows.length) {
+        return result.rows[0];
+      } else {
+        throw { message: 'Posts Not Found', status: 404 };
+      }
+    } catch (err: any) {
+      const error: Error = {
+        message: err.message,
+        status: err.status,
+      };
+      throw error;
+    }
+  }
+  async createPost(username: string, content: string): Promise<Post> {
+    try {
+      const connection = await db.connect();
+      const query = `INSERT INTO post (username,post_content) VALUES ($1,$2) RETURNING *`;
+      const result = await connection.query(query, [username, content]);
+      connection.release();
+      return result.rows[0];
+    } catch (err: any) {
+      const error: Error = {
+        message: err.message,
+        status: err.status,
+      };
+      throw error;
+    }
+  }
+  async editPost(post_id: number, content: string): Promise<Post> {
+    try {
+      const connection = await db.connect();
+      const query = `UPDATE post SET post_content = $1,update_date=$2 WHERE post_id = $3 RETURNING *`;
+      const result = await connection.query(query, [
+        content,
+        new Date().toISOString().slice(0, 10),
+        post_id,
+      ]);
+      connection.release();
+      return result.rows[0];
+    } catch (err: any) {
+      const error: Error = {
+        message: err.message,
+        status: err.status,
+      };
+      throw error;
+    }
+  }
+  async deletePost(post_id: number): Promise<boolean> {
+    try {
+      const connection = await db.connect();
+      const query = `DELETE FROM post WHERE post_id=$1`;
+      const result = await connection.query(query, [post_id]);
+      connection.release();
+      return result.rowCount == 1;
+    } catch (err: any) {
+      const error: Error = {
+        message: err.message,
+        status: err.status,
+      };
+      throw error;
+    }
+  }
+  async likePost(username: string, post_id: number): Promise<boolean> {
+    try {
+      const connection = await db.connect();
+      const query = `INSERT INTO post_like (username,post_id) VALUES ($1,$2)`;
+      const result = await connection.query(query, [username, post_id]);
+      connection.release();
+      return result.rowCount == 1;
+    } catch (err: any) {
+      const error: Error = {
+        message: err.message,
+        status: err.status,
+      };
+      throw error;
+    }
+  }
+  async unlikePost(username: string, post_id: number): Promise<boolean> {
+    try {
+      const connection = await db.connect();
+      const query = `DELETE FROM post_like WHERE username=$1 AND post_id=$2`;
+      const result = await connection.query(query, [username, post_id]);
+      connection.release();
+      return result.rowCount == 1;
+    } catch (err: any) {
+      const error: Error = {
+        message: err.message,
+        status: err.status,
+      };
+      throw error;
+    }
+  }
+  async addComment(
+    username: string,
+    post_id: number,
+    comment: string
+  ): Promise<Comment> {
+    try {
+      const connection = await db.connect();
+      const query = `INSERT INTO post_comment (username,post_id,comment_content) VALUES ($1,$2,$3) returning *`;
+      const result = await connection.query(query, [
+        username,
+        post_id,
+        comment,
+      ]);
+      connection.release();
+      return result.rows[0];
+    } catch (err: any) {
+      const error: Error = {
+        message: err.message,
+        status: err.status,
+      };
+      throw error;
+    }
+  }
+  async editComment(
+    username: string,
+    post_id: number,
+    comment: string,
+    new_comment: string
+  ): Promise<Comment> {
+    try {
+      const connection = await db.connect();
+      const query = `UPDATE post_comment SET comment_content = $1 WHERE username=$2 AND post_id=$3 AND comment_content=$4 returning *`;
+      const result = await connection.query(query, [
+        new_comment,
+        username,
+        post_id,
+        comment,
+      ]);
+      connection.release();
+      return result.rows[0];
+    } catch (err: any) {
+      const error: Error = {
+        message: err.message,
+        status: err.status,
+      };
+      throw error;
+    }
+  }
+  async deleteComment(
+    username: string,
+    post_id: number,
+    comment: string
+  ): Promise<boolean> {
+    try {
+      const connection = await db.connect();
+      const query = `DELETE FROM post_comment WHERE username=$1 AND post_id=$2 AND comment_content=$3`;
+      const result = await connection.query(query, [
+        username,
+        post_id,
+        comment,
+      ]);
+      connection.release();
+      return true;
+    } catch (err: any) {
+      const error: Error = {
+        message: err.message,
+        status: err.status,
+      };
+      throw error;
+    }
+  }
+  async addHashtags(post_id: number, hashtags: string[]): Promise<boolean> {
+    try {
+      const connection = await db.connect();
+      const query = `INSERT INTO post_tags (post_id,tag) VALUES ($1,$2)`;
+      hashtags.forEach((hashtag) => {
+        connection.query(query, [post_id, hashtag]);
       });
-    });
+      connection.release();
+      return true;
+    } catch (err: any) {
+      const error: Error = {
+        message: err.message,
+        status: err.status,
+      };
+      throw error;
+    }
+  }
+  async deleteHashtags(post_id: number): Promise<boolean> {
+    try {
+      const connection = await db.connect();
+      const query = `DELETE FROM post_tags WHERE post_id=$1`;
+      const result = await connection.query(query, [post_id]);
+      connection.release();
+      return result.rowCount == 1;
+    } catch (err: any) {
+      const error: Error = {
+        message: err.message,
+        status: err.status,
+      };
+      throw error;
+    }
+  }
+  async checkViewPost(username: string, post_id: number): Promise<boolean> {
+    try {
+      const connection = await db.connect();
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .substring(0, 10);
+      const query = `SELECT * FROM view_post WHERE username=$1 AND post_id=$2 AND view_date>$3`;
+      const result = await connection.query(query, [
+        username,
+        post_id,
+        sevenDaysAgo,
+      ]);
+      connection.release();
+      return result.rows.length > 0;
+    } catch (err: any) {
+      const error: Error = {
+        message: err.message,
+        status: err.status,
+      };
+      throw error;
+    }
+  }
+  async viewPost(username: string, post_id: number): Promise<boolean> {
+    try {
+      const checkResult = await this.checkViewPost(username, post_id);
+      const connection = await db.connect();
+      let query = ``;
+      if (checkResult) {
+        query = `UPDATE view_post SET view_date=$1 WHERE username=$2 AND post_id=$3 `;
+        query += `AND view_date IN (SELECT view_date FROM view_post WHERE username=$4 AND post_id=$5 ORDER BY view_date DESC LIMIT 1)`;
+        const result = await connection.query(query, [
+          new Date().toISOString().slice(0, 10),
+          username,
+          post_id,
+          username,
+          post_id,
+        ]);
+      } else {
+        query = `INSERT INTO view_post (username,post_id) VALUES ($1,$2)`;
+        const result = await connection.query(query, [username, post_id]);
+      }
+
+      connection.release();
+      return true;
+    } catch (err: any) {
+      const error: Error = {
+        message: err.message,
+        status: err.status,
+      };
+      throw error;
+    }
+  }
+  async getPostsByHashtag(hashtag: string): Promise<Post[]> {
+    try {
+      const connection = await db.connect();
+      const query = `SELECT * FROM post WHERE post_id IN (SELECT post_id FROM post_tags WHERE tag LIKE '${hashtag}%')`;
+      const result = await connection.query(query);
+      connection.release();
+      return result.rows;
+    } catch (err: any) {
+      const error: Error = {
+        message: err.message,
+        status: err.status,
+      };
+      throw error;
+    }
+  }
+  async deleteViews(post_id: number): Promise<boolean> {
+    try {
+      const connection = await db.connect();
+      const query = `DELETE FROM view_post WHERE post_id=$1`;
+      const result = await connection.query(query, [post_id]);
+      connection.release();
+      return result.rowCount > 0;
+    } catch (err: any) {
+      const error: Error = {
+        message: err.message,
+        status: err.status,
+      };
+      throw error;
+    }
+  }
+  async deleteComments(post_id: number): Promise<boolean> {
+    try {
+      const connection = await db.connect();
+      const query = `DELETE FROM post_comment WHERE post_id=$1`;
+      const result = await connection.query(query, [post_id]);
+      connection.release();
+      return result.rowCount > 0;
+    } catch (err: any) {
+      const error: Error = {
+        message: err.message,
+        status: err.status,
+      };
+      throw error;
+    }
   }
 }
 export default new postModel();

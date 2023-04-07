@@ -1,5 +1,5 @@
 type Post = {
-  post_id?: number;
+  post_id: number;
   username: string;
   upload_date?: string;
   update_date?: string;

@@ -31,6 +31,7 @@ module.exports = {
         "no-multi-str": 0,
         "no-irregular-whitespace": 0,
         "prettier/prettier": 0,
+        "@typescript-eslint/no-explicit-any": false
     },
     "ignorePatterns": [
         "node_modules/",
