@@ -1,5 +1,5 @@
 type Comment = {
-  id?: number;
+  id: number;
   username: string;
   post_id: string;
   comment: string;
