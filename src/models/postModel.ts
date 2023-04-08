@@ -7,10 +7,10 @@ class postModel {
     try {
       const connection = await db.connect();
       const query = `SELECT * FROM post WHERE post_id=$1`;
-      const result = await connection.query(query, [post_id]);
+      const { rows } = await connection.query(query, [post_id]);
       connection.release();
-      if (result.rows.length) {
-        return result.rows[0];
+      if (rows.length) {
+        return rows[0];
       } else {
         throw { message: 'Post Not Found', status: 404 };
       }
@@ -26,10 +26,10 @@ class postModel {
     try {
       const connection = await db.connect();
       const query = `SELECT * FROM post WHERE username=$1`;
-      const result = await connection.query(query, [username]);
+      const { rows } = await connection.query(query, [username]);
       connection.release();
-      if (result.rows.length) {
-        return result.rows[0];
+      if (rows.length) {
+        return rows[0];
       } else {
         throw { message: 'Posts Not Found', status: 404 };
       }
@@ -45,9 +45,9 @@ class postModel {
     try {
       const connection = await db.connect();
       const query = `INSERT INTO post (username,post_content) VALUES ($1,$2) RETURNING *`;
-      const result = await connection.query(query, [username, content]);
+      const { rows } = await connection.query(query, [username, content]);
       connection.release();
-      return result.rows[0];
+      return rows[0];
     } catch (err: any) {
       const error: Error = {
         message: err.message,
@@ -60,13 +60,13 @@ class postModel {
     try {
       const connection = await db.connect();
       const query = `UPDATE post SET post_content = $1,update_date=$2 WHERE post_id = $3 RETURNING *`;
-      const result = await connection.query(query, [
+      const { rows } = await connection.query(query, [
         content,
         new Date().toISOString().slice(0, 10),
         post_id,
       ]);
       connection.release();
-      return result.rows[0];
+      return rows[0];
     } catch (err: any) {
       const error: Error = {
         message: err.message,
@@ -79,9 +79,9 @@ class postModel {
     try {
       const connection = await db.connect();
       const query = `DELETE FROM post WHERE post_id=$1`;
-      const result = await connection.query(query, [post_id]);
+      const { rowCount } = await connection.query(query, [post_id]);
       connection.release();
-      return result.rowCount == 1;
+      return rowCount == 1;
     } catch (err: any) {
       const error: Error = {
         message: err.message,
@@ -94,9 +94,9 @@ class postModel {
     try {
       const connection = await db.connect();
       const query = `INSERT INTO post_like (username,post_id) VALUES ($1,$2)`;
-      const result = await connection.query(query, [username, post_id]);
+      const { rowCount } = await connection.query(query, [username, post_id]);
       connection.release();
-      return result.rowCount == 1;
+      return rowCount == 1;
     } catch (err: any) {
       const error: Error = {
         message: err.message,
@@ -109,9 +109,9 @@ class postModel {
     try {
       const connection = await db.connect();
       const query = `DELETE FROM post_like WHERE username=$1 AND post_id=$2`;
-      const result = await connection.query(query, [username, post_id]);
+      const { rowCount } = await connection.query(query, [username, post_id]);
       connection.release();
-      return result.rowCount == 1;
+      return rowCount == 1;
     } catch (err: any) {
       const error: Error = {
         message: err.message,
@@ -128,13 +128,13 @@ class postModel {
     try {
       const connection = await db.connect();
       const query = `INSERT INTO post_comment (username,post_id,comment_content) VALUES ($1,$2,$3) returning *`;
-      const result = await connection.query(query, [
+      const { rows } = await connection.query(query, [
         username,
         post_id,
         comment,
       ]);
       connection.release();
-      return result.rows[0];
+      return rows[0];
     } catch (err: any) {
       const error: Error = {
         message: err.message,
@@ -143,23 +143,17 @@ class postModel {
       throw error;
     }
   }
-  async editComment(
-    username: string,
-    post_id: number,
-    comment: string,
-    new_comment: string
-  ): Promise<Comment> {
+  async editComment(comment_id: number, new_comment: string): Promise<Comment> {
     try {
       const connection = await db.connect();
-      const query = `UPDATE post_comment SET comment_content = $1 WHERE username=$2 AND post_id=$3 AND comment_content=$4 returning *`;
-      const result = await connection.query(query, [
+      const query = `UPDATE post_comment SET comment_content = $1,update_time=$2 WHERE comment_id=$3 returning *`;
+      const { rows } = await connection.query(query, [
         new_comment,
-        username,
-        post_id,
-        comment,
+        new Date().toISOString(),
+        comment_id,
       ]);
       connection.release();
-      return result.rows[0];
+      return rows[0];
     } catch (err: any) {
       const error: Error = {
         message: err.message,
@@ -168,19 +162,11 @@ class postModel {
       throw error;
     }
   }
-  async deleteComment(
-    username: string,
-    post_id: number,
-    comment: string
-  ): Promise<boolean> {
+  async deleteComment(comment_id: number): Promise<boolean> {
     try {
       const connection = await db.connect();
-      const query = `DELETE FROM post_comment WHERE username=$1 AND post_id=$2 AND comment_content=$3`;
-      const result = await connection.query(query, [
-        username,
-        post_id,
-        comment,
-      ]);
+      const query = `DELETE FROM post_comment WHERE comment_id=$1`;
+      await connection.query(query, [comment_id]);
       connection.release();
       return true;
     } catch (err: any) {
@@ -212,9 +198,9 @@ class postModel {
     try {
       const connection = await db.connect();
       const query = `DELETE FROM post_tags WHERE post_id=$1`;
-      const result = await connection.query(query, [post_id]);
+      const { rowCount } = await connection.query(query, [post_id]);
       connection.release();
-      return result.rowCount == 1;
+      return rowCount == 1;
     } catch (err: any) {
       const error: Error = {
         message: err.message,
@@ -253,7 +239,7 @@ class postModel {
       if (checkResult) {
         query = `UPDATE view_post SET view_date=$1 WHERE username=$2 AND post_id=$3 `;
         query += `AND view_date IN (SELECT view_date FROM view_post WHERE username=$4 AND post_id=$5 ORDER BY view_date DESC LIMIT 1)`;
-        const result = await connection.query(query, [
+        await connection.query(query, [
           new Date().toISOString().slice(0, 10),
           username,
           post_id,
@@ -262,9 +248,8 @@ class postModel {
         ]);
       } else {
         query = `INSERT INTO view_post (username,post_id) VALUES ($1,$2)`;
-        const result = await connection.query(query, [username, post_id]);
+        await connection.query(query, [username, post_id]);
       }
-
       connection.release();
       return true;
     } catch (err: any) {

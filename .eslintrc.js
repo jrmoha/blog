@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-undef
 module.exports = {
     "env": {
         "browser": true,
@@ -31,7 +30,7 @@ module.exports = {
         "no-multi-str": 0,
         "no-irregular-whitespace": 0,
         "prettier/prettier": 0,
-        "@typescript-eslint/no-explicit-any": false
+        "@typescript-eslint/no-explicit-any": 0
     },
     "ignorePatterns": [
         "node_modules/",

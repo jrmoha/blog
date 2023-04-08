@@ -1,8 +1,8 @@
 import express, { Application, Request, Response } from 'express';
-import config from './config/config';
+import config from './utils/config';
 import * as auth from './controllers/authController';
 import * as post from './controllers/postController';
-// const User = new userModel();
+
 const app: Application = express();
 const port: number = config.PORT;
 app.use(express.json());

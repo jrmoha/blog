@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import postModel from '../models/postModel';
-import { getHashtags } from '../functions';
+import { getHashtags } from '../utils/functions';
 import Post from '../types/post_type';
 import userModel from '../models/userModel';
 import Comment from '../types/comment_type';
@@ -108,13 +108,10 @@ export const addComment = async (req: Request, res: Response) => {
 };
 export const deleteComment = async (req: Request, res: Response) => {
   try {
-    const { username, post_id, comment_id } = req.body;
-    const response: boolean = await postModel.deleteComment(
-      username,
-      post_id,
-      comment_id
-    );
+    const { comment_id, username } = req.body;
+    const response: boolean = await postModel.deleteComment(comment_id);
     if (response) {
+      Promise.resolve(userModel.addActivity(username, 'You Deleted A Comment'));
       res.json({ message: 'Comment Deleted' });
     } else {
       res.json({ message: 'Post Not Found' });
@@ -125,11 +122,9 @@ export const deleteComment = async (req: Request, res: Response) => {
 };
 export const editComment = async (req: Request, res: Response) => {
   try {
-    const { username, post_id, comment, new_comment } = req.body;
+    const { comment_id, new_comment } = req.body;
     const response: Comment = await postModel.editComment(
-      username,
-      post_id,
-      comment,
+      comment_id,
       new_comment
     );
     if (response) {
