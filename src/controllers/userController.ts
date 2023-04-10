@@ -28,4 +28,3 @@ export const changePasswordController = async (req: Request, res: Response) => {
     res.json({ message: error.message, status: error.status });
   }
 };
-

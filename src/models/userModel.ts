@@ -4,7 +4,8 @@ import Error from '../interfaces/error';
 import bcryptjs from 'bcryptjs';
 import Options from '../types/options_type';
 import { PoolClient } from 'pg';
-
+import config from '../utils/config';
+const { lastseen_timeout } = config;
 class userModel {
   async userExists(username: string, email: string): Promise<boolean> {
     try {
@@ -402,7 +403,7 @@ class userModel {
       throw error;
     }
   }
-  async getFollowed(username: string): Promise<User[]> {
+  async getFollowings(username: string): Promise<User[]> {
     try {
       const connection: PoolClient = await db.connect();
       const query = `SELECT followed_username FROM follow WHERE follower_username=$1 AND follow_status=1`;
@@ -424,6 +425,91 @@ class userModel {
       const { rowCount } = await connection.query(query, [username]);
       connection.release();
       return rowCount == 1;
+    } catch (err: any) {
+      const error: Error = {
+        message: err.message,
+        status: err.status || 400,
+      };
+      throw error;
+    }
+  }
+  async deleteFollowers(username: string): Promise<boolean> {
+    try {
+      const connection = await db.connect();
+      const query = `DELETE FROM follow WHERE followed_username=$1`;
+      const { rowCount } = await connection.query(query, [username]);
+      connection.release();
+      return rowCount > 0;
+    } catch (err: any) {
+      const error: Error = {
+        message: err.message,
+        status: err.status || 400,
+      };
+      throw error;
+    }
+  }
+  async deleteFollowings(username: string): Promise<boolean> {
+    try {
+      const connection = await db.connect();
+      const query = `DELETE FROM follow WHERE follower_username=$1`;
+      const { rowCount } = await connection.query(query, [username]);
+      connection.release();
+      return rowCount > 0;
+    } catch (err: any) {
+      const error: Error = {
+        message: err.message,
+        status: err.status || 400,
+      };
+      throw error;
+    }
+  }
+  async updateSessionTime(session_id: string): Promise<boolean> {
+    try {
+      const connection = await db.connect();
+      const query = `UPDATE users SET update_time=$1 WHERE session_id=$2`;
+      const { rowCount } = await connection.query(query, [
+        new Date().getTime(),
+        session_id,
+      ]);
+      connection.release();
+      return rowCount == 1;
+    } catch (err: any) {
+      const error: Error = {
+        message: err.message,
+        status: err.status || 400,
+      };
+      throw error;
+    }
+  }
+  async lastseen(username: string): Promise<number> {
+    try {
+      const connection = await db.connect();
+      let query = `SELECT update_time FROM user_session `;
+      query += `WHERE update_time=(SELECT MAX(update_time) FROM user_session WHERE username=$1)`;
+      const { rows } = await connection.query(query, [username]);
+      connection.release();
+      return rows[0].update_time;
+    } catch (err: any) {
+      const error: Error = {
+        message: err.message,
+        status: err.status || 400,
+      };
+      throw error;
+    }
+  }
+  async getUsersOnline(current_username: string): Promise<User[]> {
+    try {
+      const connection = await db.connect();
+      let query = `SELECT username FROM user_session `;
+      query += `WHERE update_time>$1 AND username!=$2 `;
+      query += `AND username IN (SELECT followed_username FROM follow WHERE follower_username=$2 AND follow_status=1)`;
+      query += `GROUP BY username`;
+      const { rows } = await connection.query(query, [
+        new Date().getTime() - lastseen_timeout,
+        current_username,
+      ]);
+      connection.release();
+      return rows;
     } catch (err: any) {
       const error: Error = {
         message: err.message,

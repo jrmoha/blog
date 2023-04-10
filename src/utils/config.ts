@@ -8,6 +8,7 @@ const {
   DATABASE_USERNAME,
   DATABASE_PASSWORD,
   DATABASE_PORT,
+  LASTSEEN_TIMEOUT,
   // eslint-disable-next-line no-undef
 } = process.env;
 
@@ -20,4 +21,5 @@ export default {
     password: DATABASE_PASSWORD,
     port: DATABASE_PORT,
   },
+  lastseen_timeout: parseInt(LASTSEEN_TIMEOUT as string, 10),
 };

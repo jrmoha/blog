@@ -8,8 +8,7 @@
     "start": "npm run build && nodemon dist/app.js",
     "lint:fix": "eslint src/**/*.ts --fix",
     "format": "prettier --write src/**/*.ts",
-    "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
-    "tsDev": "nodemon -w *.ts -e ts -x ts-node --files -H -T src/app.ts"
+    "startDev": "nodemon -w *.ts -e ts -x ts-node --files -H -T src/app.ts"
   },
   "repository": {
     "type": "git",
