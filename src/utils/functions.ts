@@ -10,7 +10,8 @@ export const getHashtags = (query: string): string[] => {
   return [...new Set(hashtags)];
 };
 
-export const formatTime = (lastseen_time: number): string => {
+export const formatTime = (lastseen_string: string): string => {
+  const lastseen_time = Date.parse(lastseen_string);
   let diff = new Date().getTime() - lastseen_time;
   const day = 24 * 60 * 60 * 1000;
   let last_active = '';

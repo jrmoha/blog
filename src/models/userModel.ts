@@ -52,7 +52,7 @@ class userModel {
       query += `VALUES ($1,$2,$3,$4,$5,$6) RETURNING username,email,first_name,last_name`;
       const salt = await bcryptjs.genSalt(10);
       const hashedPassword = await bcryptjs.hash(password, salt);
-      const res = await connection.query(query, [
+      const { rows } = await connection.query(query, [
         username,
         email,
         hashedPassword,
@@ -61,7 +61,7 @@ class userModel {
         birth_date,
       ]);
       connection.release();
-      return res.rows[0];
+      return rows[0];
     }
   }
   async authenticateUser(username: string, password: string): Promise<User> {
@@ -136,7 +136,7 @@ class userModel {
   async getActivities(username: string): Promise<string[]> {
     try {
       const connection: PoolClient = await db.connect();
-      const query = `SELECT activity,activity_date FROM activity WHERE username=$1`;
+      const query = `SELECT activity,activity_date FROM activity WHERE username=$1 ORDER BY activity_date DESC`;
       const result = await connection.query(query, [username]);
       return result.rows;
     } catch (err: any) {
@@ -151,9 +151,12 @@ class userModel {
     try {
       const connection: PoolClient = await db.connect();
       const query = `INSERT INTO user_session(username,session_id) VALUES($1,$2)`;
-      const result = await connection.query(query, [username, session_id]);
+      const { rowCount } = await connection.query(query, [
+        username,
+        session_id,
+      ]);
       connection.release();
-      return result.rowCount == 1;
+      return rowCount == 1;
     } catch (err: any) {
       const error: Error = {
         message: err.message,
@@ -166,9 +169,12 @@ class userModel {
     try {
       const connection: PoolClient = await db.connect();
       const query = `INSERT INTO user_search(username,search) VALUES ($1,$2)`;
-      const result = await connection.query(query, [username, search_title]);
+      const { rowCount } = await connection.query(query, [
+        username,
+        search_title,
+      ]);
       connection.release();
-      return result.rowCount == 1;
+      return rowCount == 1;
     } catch (err: any) {
       const error: Error = {
         message: err.message,
@@ -181,9 +187,9 @@ class userModel {
     try {
       const connection: PoolClient = await db.connect();
       const query = `SELECT search FROM user_search WHERE username=$1 ORDER BY search_date DESC`;
-      const result = await connection.query(query, [username]);
+      const { rows } = await connection.query(query, [username]);
       connection.release();
-      return result.rows;
+      return rows[0];
     } catch (err: any) {
       const error: Error = {
         message: err.message,
@@ -242,9 +248,12 @@ class userModel {
     try {
       const connection: PoolClient = await db.connect();
       const query = `DELETE FROM follow WHERE follower_username=$1 AND followed_username=$2`;
-      const result = await connection.query(query, [username, unfollowed]);
+      const { rowCount } = await connection.query(query, [
+        username,
+        unfollowed,
+      ]);
       connection.release();
-      return result.rowCount == 1;
+      return rowCount == 1;
     } catch (err: any) {
       const error: Error = {
         message: err.message,
@@ -257,9 +266,9 @@ class userModel {
     try {
       const connection: PoolClient = await db.connect();
       const query = `UPDATE follow SET follow_status=0 WHERE follower_username=$1 AND followed_username=$2`;
-      const result = await connection.query(query, [follower, username]);
+      const { rowCount } = await connection.query(query, [follower, username]);
       connection.release();
-      return result.rowCount == 1;
+      return rowCount == 1;
     } catch (err: any) {
       const error: Error = {
         message: err.message,
@@ -272,9 +281,9 @@ class userModel {
     try {
       const connection: PoolClient = await db.connect();
       const query = `INSERT INTO options (username) VALUES ($1)`;
-      const result = await connection.query(query, [username]);
+      const { rows } = await connection.query(query, [username]);
       connection.release();
-      return result.rows[0];
+      return rows[0];
     } catch (err: any) {
       const error: Error = {
         message: err.message,
@@ -291,9 +300,9 @@ class userModel {
     try {
       const connection: PoolClient = await db.connect();
       const query = `UPDATE options SET ${option}=$1 WHERE username=$2`;
-      const result = await connection.query(query, [value, username]);
+      const { rows } = await connection.query(query, [value, username]);
       connection.release();
-      return result.rows[0];
+      return rows[0];
     } catch (err: any) {
       const error: Error = {
         message: err.message,
@@ -409,7 +418,7 @@ class userModel {
       const query = `SELECT followed_username FROM follow WHERE follower_username=$1 AND follow_status=1`;
       const { rows } = await connection.query(query, [username]);
       connection.release();
-      return rows;
+      return rows[0];
     } catch (err: any) {
       const error: Error = {
         message: err.message,
@@ -481,11 +490,12 @@ class userModel {
       throw error;
     }
   }
-  async lastseen(username: string): Promise<number> {
+  async lastseen(username: string): Promise<string> {
     try {
       const connection = await db.connect();
-      let query = `SELECT update_time FROM user_session `;
-      query += `WHERE update_time=(SELECT MAX(update_time) FROM user_session WHERE username=$1)`;
+      const query = `SELECT MAX(update_time) AS "update_time" FROM user_session WHERE username=$1`;
+      // let query = `SELECT update_time FROM user_session `;
+      // query += `WHERE update_time=(SELECT MAX(update_time) FROM user_session WHERE username=$1)`;
       const { rows } = await connection.query(query, [username]);
       connection.release();
       return rows[0].update_time;
@@ -505,11 +515,14 @@ class userModel {
       query += `AND username IN (SELECT followed_username FROM follow WHERE follower_username=$2 AND follow_status=1)`;
       query += `GROUP BY username`;
       const { rows } = await connection.query(query, [
-        new Date().getTime() - lastseen_timeout,
+        new Date(new Date().getTime() - lastseen_timeout)
+          .toISOString()
+          .replace('T', ' ')
+          .slice(0, -5),
         current_username,
       ]);
       connection.release();
-      return rows;
+      return rows[0];
     } catch (err: any) {
       const error: Error = {
         message: err.message,

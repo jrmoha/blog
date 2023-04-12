@@ -4,6 +4,7 @@ import * as auth from './controllers/authController';
 import * as post from './controllers/postController';
 import * as user from './controllers/userController';
 import userModel from './models/userModel';
+import { formatTime } from './utils/functions';
 const app: Application = express();
 const port: number = config.PORT;
 app.use(express.json());
@@ -40,6 +41,24 @@ app.get('/following/:username', async (req: Request, res: Response) => {
     const username: string = req.params.username;
     const result = await userModel.getFollowings(username);
     res.status(200).send(result);
+  } catch (err) {
+    res.json(err);
+  }
+});
+app.get('/online', async (req: Request, res: Response) => {
+  try {
+    const result = await userModel.getUsersOnline('dash');
+    res.status(200).send(result);
+  } catch (err) {
+    res.json(err);
+  }
+});
+app.get('/lastseen', async (req: Request, res: Response) => {
+  try {
+    const result: string = await userModel.lastseen('this is new');
+    // const time = Date.parse(result);
+    const q = formatTime(result);
+    res.status(200).send({ lastseen: q });
   } catch (err) {
     res.json(err);
   }
