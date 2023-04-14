@@ -1,13 +1,16 @@
 import db from '../database';
 import User from '../types/user_type';
-import Error from '../interfaces/error';
-import bcryptjs from 'bcryptjs';
+import IError from '../interfaces/error';
 import Options from '../types/options_type';
 import { PoolClient } from 'pg';
 import config from '../utils/config';
-const { lastseen_timeout } = config;
+import { comparePassword, hashPassword } from '../utils/functions';
+const { lastseen_timeout } = config; //30000ms
 class userModel {
-  async userExists(username: string, email: string): Promise<boolean> {
+  async username_email_taken(
+    username: string,
+    email: string
+  ): Promise<boolean> {
     try {
       const connection: PoolClient = await db.connect();
       const query = `SELECT username,email FROM users WHERE username=$1 OR email=$2`;
@@ -16,7 +19,7 @@ class userModel {
       if (res.rows.length === 0) {
         return false;
       } else {
-        const err: Error = {
+        const err: IError = {
           message: '',
           status: 409,
         };
@@ -28,7 +31,7 @@ class userModel {
         throw err;
       }
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status || 400,
       };
@@ -41,17 +44,16 @@ class userModel {
     email: string,
     first_name: string,
     last_name: string,
-    birth_date: Date
+    birth_date: string
   ): Promise<User> {
-    const userEx = await this.userExists(username, email);
+    const userEx = await this.username_email_taken(username, email);
     if (userEx) {
       throw userEx;
     } else {
       const connection: PoolClient = await db.connect();
       let query = `INSERT INTO users (username,email,password,first_name,last_name,birth_date) `;
       query += `VALUES ($1,$2,$3,$4,$5,$6) RETURNING username,email,first_name,last_name`;
-      const salt = await bcryptjs.genSalt(10);
-      const hashedPassword = await bcryptjs.hash(password, salt);
+      const hashedPassword = await hashPassword(password);
       const { rows } = await connection.query(query, [
         username,
         email,
@@ -64,12 +66,27 @@ class userModel {
       return rows[0];
     }
   }
+  async getUserByUsername(username: string): Promise<User> {
+    try {
+      const connection: PoolClient = await db.connect();
+      const query = `SELECT username,email,first_name,last_name,birth_date FROM users WHERE username=$1`;
+      const { rows } = await connection.query(query, [username]);
+      connection.release();
+      return rows[0];
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 400,
+      };
+      throw error;
+    }
+  }
   async authenticateUser(username: string, password: string): Promise<User> {
     try {
       const connection: PoolClient = await db.connect();
       const query = `SELECT username,email,password,first_name,last_name FROM users WHERE username=$1`;
       const result = await connection.query(query, [username]);
-      const err: Error = {
+      const err: IError = {
         name: 'Authentication Error',
         message: ``,
         status: 401,
@@ -79,7 +96,7 @@ class userModel {
         throw err;
       } else {
         const user = result.rows[0];
-        const isMatch = bcryptjs.compareSync(password, user.password);
+        const isMatch = await comparePassword(password, user.password);
         delete user.password;
         if (isMatch) {
           return user;
@@ -89,7 +106,7 @@ class userModel {
         }
       }
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status || 400,
       };
@@ -107,7 +124,7 @@ class userModel {
       connection.release();
       return res.rowCount == 1;
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status || 400,
       };
@@ -126,7 +143,7 @@ class userModel {
       connection.release();
       return result.rowCount == 1;
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status || 400,
       };
@@ -140,7 +157,7 @@ class userModel {
       const result = await connection.query(query, [username]);
       return result.rows;
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status || 400,
       };
@@ -158,7 +175,7 @@ class userModel {
       connection.release();
       return rowCount == 1;
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status || 400,
       };
@@ -176,7 +193,7 @@ class userModel {
       connection.release();
       return rowCount == 1;
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status || 400,
       };
@@ -191,7 +208,7 @@ class userModel {
       connection.release();
       return rows[0];
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status || 400,
       };
@@ -207,7 +224,7 @@ class userModel {
       connection.release();
       return result.rowCount == 1;
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status || 400,
       };
@@ -217,7 +234,7 @@ class userModel {
   async follow(
     follower_username: string,
     followed_username: string
-  ): Promise<boolean | Error> {
+  ): Promise<boolean | IError> {
     try {
       const connection: PoolClient = await db.connect();
       const check_query = `SELECT * FROM follow WHERE follower_username=$1 AND followed_username=$2 AND follow_status=0`;
@@ -237,7 +254,7 @@ class userModel {
       }
       connection.release();
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status || 400,
       };
@@ -255,7 +272,7 @@ class userModel {
       connection.release();
       return rowCount == 1;
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status || 400,
       };
@@ -270,7 +287,7 @@ class userModel {
       connection.release();
       return rowCount == 1;
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status || 400,
       };
@@ -285,7 +302,7 @@ class userModel {
       connection.release();
       return rows[0];
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status || 400,
       };
@@ -304,7 +321,7 @@ class userModel {
       connection.release();
       return rows[0];
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status || 400,
       };
@@ -329,7 +346,7 @@ class userModel {
       connection.release();
       return rows[0];
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status || 400,
       };
@@ -342,7 +359,7 @@ class userModel {
     new_password: string
   ): Promise<boolean> {
     try {
-      const error: Error = {
+      const error: IError = {
         message: '',
         status: 403,
       };
@@ -353,7 +370,7 @@ class userModel {
       const connection: PoolClient = await db.connect();
       const old_password_query = `SELECT password FROM users WHERE username=$1`;
       const { rows } = await connection.query(old_password_query, [username]);
-      const old_password_match: boolean = await bcryptjs.compare(
+      const old_password_match: boolean = await comparePassword(
         old_password,
         rows[0].password
       );
@@ -361,8 +378,7 @@ class userModel {
         error.message = `This Password Doesn't Match Your Old One.`;
         throw error;
       }
-      const salt = await bcryptjs.genSalt(10);
-      const hashed_new_password = await bcryptjs.hash(new_password, salt);
+      const hashed_new_password = await hashPassword(new_password);
       const update_query = `UPDATE users SET password=$1 WHERE username=$2`;
       const { rowCount } = await connection.query(update_query, [
         hashed_new_password,
@@ -371,7 +387,7 @@ class userModel {
       connection.release();
       return rowCount == 1;
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status || 400 || 400,
       };
@@ -380,17 +396,17 @@ class userModel {
   }
   async deleteUser(username: string, password: string): Promise<boolean> {
     try {
-      const connection = await db.connect();
+      const connection: PoolClient = await db.connect();
       const password_query = `SELECT password FROM users WHERE username=$1`;
       const { rows } = await connection.query(password_query, [username]);
-      const password_check = await bcryptjs.compare(password, rows[0].password);
+      const password_check = await comparePassword(password, rows[0].password);
       if (!password_check)
         throw new Error(`This Password Ain't Match Your Old One.`);
       const delete_query = `DELETE FROM users WHERE username=$1`;
       const { rowCount } = await connection.query(delete_query, [username]);
       return rowCount == 1;
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status || 400,
       };
@@ -405,7 +421,7 @@ class userModel {
       connection.release();
       return rows;
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status || 400,
       };
@@ -420,7 +436,7 @@ class userModel {
       connection.release();
       return rows[0];
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status || 400,
       };
@@ -429,13 +445,13 @@ class userModel {
   }
   async deleteOptions(username: string): Promise<boolean> {
     try {
-      const connection = await db.connect();
+      const connection: PoolClient = await db.connect();
       const query = `DELETE FROM options WHERE username=$1`;
       const { rowCount } = await connection.query(query, [username]);
       connection.release();
       return rowCount == 1;
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status || 400,
       };
@@ -444,13 +460,13 @@ class userModel {
   }
   async deleteFollowers(username: string): Promise<boolean> {
     try {
-      const connection = await db.connect();
+      const connection: PoolClient = await db.connect();
       const query = `DELETE FROM follow WHERE followed_username=$1`;
       const { rowCount } = await connection.query(query, [username]);
       connection.release();
       return rowCount > 0;
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status || 400,
       };
@@ -459,13 +475,13 @@ class userModel {
   }
   async deleteFollowings(username: string): Promise<boolean> {
     try {
-      const connection = await db.connect();
+      const connection: PoolClient = await db.connect();
       const query = `DELETE FROM follow WHERE follower_username=$1`;
       const { rowCount } = await connection.query(query, [username]);
       connection.release();
       return rowCount > 0;
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status || 400,
       };
@@ -474,7 +490,7 @@ class userModel {
   }
   async updateSessionTime(session_id: string): Promise<boolean> {
     try {
-      const connection = await db.connect();
+      const connection: PoolClient = await db.connect();
       const query = `UPDATE users SET update_time=$1 WHERE session_id=$2`;
       const { rowCount } = await connection.query(query, [
         new Date().getTime(),
@@ -483,7 +499,7 @@ class userModel {
       connection.release();
       return rowCount == 1;
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status || 400,
       };
@@ -492,15 +508,13 @@ class userModel {
   }
   async lastseen(username: string): Promise<string> {
     try {
-      const connection = await db.connect();
+      const connection: PoolClient = await db.connect();
       const query = `SELECT MAX(update_time) AS "update_time" FROM user_session WHERE username=$1`;
-      // let query = `SELECT update_time FROM user_session `;
-      // query += `WHERE update_time=(SELECT MAX(update_time) FROM user_session WHERE username=$1)`;
       const { rows } = await connection.query(query, [username]);
       connection.release();
       return rows[0].update_time;
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status || 400,
       };
@@ -509,7 +523,7 @@ class userModel {
   }
   async getUsersOnline(current_username: string): Promise<User[]> {
     try {
-      const connection = await db.connect();
+      const connection: PoolClient = await db.connect();
       let query = `SELECT username FROM user_session `;
       query += `WHERE update_time>$1 AND username!=$2 `;
       query += `AND username IN (SELECT followed_username FROM follow WHERE follower_username=$2 AND follow_status=1)`;
@@ -524,7 +538,75 @@ class userModel {
       connection.release();
       return rows[0];
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 400,
+      };
+      throw error;
+    }
+  }
+  async insertProvider(
+    provider_id: number,
+    provider_name: string,
+    username: string
+  ): Promise<boolean> {
+    try {
+      const connection: PoolClient = await db.connect();
+      const query = `INSERT INTO provider (provider_id, provider_name, username) VALUES ($1, $2, $3)`;
+      const { rowCount } = await connection.query(query, [
+        provider_id,
+        provider_name,
+        username,
+      ]);
+      connection.release();
+      return rowCount == 1;
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 400,
+      };
+      throw error;
+    }
+  }
+  async findOrCreate(profile: any): Promise<any | null> {
+    try {
+      const connection: PoolClient = await db.connect();
+      const search_user_exists_query = `SELECT username FROM provider WHERE provider_id=$1`;
+      const search_user_exists_result = await connection.query(
+        search_user_exists_query,
+        [profile.id]
+      );
+      connection.release();
+      if (search_user_exists_result.rowCount == 0) {
+        const user: User = await this.registerUser(
+          profile._json.name,
+          `${profile.id}${profile._json.email}`,
+          profile._json.email,
+          profile._json.name,
+          profile._json.name,
+          new Date().toISOString().slice(0, 19).replace('T', ' ')
+        );
+        const insert_provider: boolean = await this.insertProvider(
+          profile.id,
+          profile.provider,
+          user.username
+        );
+        if (!insert_provider) {
+          return null;
+        } else {
+          profile.username = user.username;
+          profile.user = user;
+        }
+      } else {
+        const user: User = await this.getUserByUsername(
+          search_user_exists_result.rows[0].username
+        );
+        profile.username = user.username;
+        profile.user = user;
+      }
+      return profile;
+    } catch (err: any) {
+      const error: IError = {
         message: err.message,
         status: err.status || 400,
       };

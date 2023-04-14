@@ -1,7 +1,8 @@
 import db from '../database';
 import Post from '../types/post_type';
 import Comment from '../types/comment_type';
-import Error from '../interfaces/error';
+import IError from '../interfaces/error';
+import User from '../types/user_type';
 class postModel {
   async getPost(post_id: number): Promise<Post> {
     try {
@@ -15,7 +16,7 @@ class postModel {
         throw { message: 'Post Not Found', status: 404 };
       }
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status,
       };
@@ -29,12 +30,12 @@ class postModel {
       const { rows } = await connection.query(query, [username]);
       connection.release();
       if (rows.length) {
-        return rows[0];
+        return rows;
       } else {
         throw { message: 'Posts Not Found', status: 404 };
       }
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status,
       };
@@ -49,7 +50,7 @@ class postModel {
       connection.release();
       return rows[0];
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status,
       };
@@ -68,7 +69,7 @@ class postModel {
       connection.release();
       return rows[0];
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status,
       };
@@ -83,7 +84,7 @@ class postModel {
       connection.release();
       return rowCount == 1;
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status,
       };
@@ -98,7 +99,7 @@ class postModel {
       connection.release();
       return rowCount == 1;
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status,
       };
@@ -113,7 +114,7 @@ class postModel {
       connection.release();
       return rowCount == 1;
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status,
       };
@@ -136,7 +137,7 @@ class postModel {
       connection.release();
       return rows[0];
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status,
       };
@@ -146,16 +147,12 @@ class postModel {
   async editComment(comment_id: number, new_comment: string): Promise<Comment> {
     try {
       const connection = await db.connect();
-      const query = `UPDATE post_comment SET comment_content = $1,update_time=$2 WHERE comment_id=$3 returning *`;
-      const { rows } = await connection.query(query, [
-        new_comment,
-        new Date().toISOString(),
-        comment_id,
-      ]);
+      const query = `UPDATE post_comment SET comment_content = $1,update_time=NOW() WHERE comment_id=$2 returning *`;
+      const { rows } = await connection.query(query, [new_comment, comment_id]);
       connection.release();
       return rows[0];
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status,
       };
@@ -170,7 +167,7 @@ class postModel {
       connection.release();
       return true;
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status,
       };
@@ -187,7 +184,7 @@ class postModel {
       connection.release();
       return true;
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status,
       };
@@ -202,7 +199,7 @@ class postModel {
       connection.release();
       return rowCount == 1;
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status,
       };
@@ -224,7 +221,7 @@ class postModel {
       connection.release();
       return result.rows.length > 0;
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status,
       };
@@ -236,11 +233,12 @@ class postModel {
       const checkResult = await this.checkViewPost(username, post_id);
       const connection = await db.connect();
       let query = ``;
+      let result;
       if (checkResult) {
         query = `UPDATE view_post SET view_date=$1 WHERE username=$2 AND post_id=$3 `;
         query += `AND view_date IN (SELECT view_date FROM view_post WHERE username=$4 AND post_id=$5 ORDER BY view_date DESC LIMIT 1)`;
-        await connection.query(query, [
-          new Date().toISOString().slice(0, 10),
+        result = await connection.query(query, [
+          new Date().toISOString(),
           username,
           post_id,
           username,
@@ -248,14 +246,14 @@ class postModel {
         ]);
       } else {
         query = `INSERT INTO view_post (username,post_id) VALUES ($1,$2)`;
-        await connection.query(query, [username, post_id]);
+        result = await connection.query(query, [username, post_id]);
       }
       connection.release();
-      return true;
+      return result.rowCount === 1;
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
-        status: err.status,
+        status: err.status || 404,
       };
       throw error;
     }
@@ -268,7 +266,7 @@ class postModel {
       connection.release();
       return result.rows;
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status,
       };
@@ -283,7 +281,7 @@ class postModel {
       connection.release();
       return result.rowCount > 0;
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status,
       };
@@ -294,13 +292,74 @@ class postModel {
     try {
       const connection = await db.connect();
       const query = `DELETE FROM post_comment WHERE post_id=$1`;
-      const result = await connection.query(query, [post_id]);
+      await connection.query(query, [post_id]);
       connection.release();
-      return result.rowCount > 0;
+      return true;
     } catch (err: any) {
-      const error: Error = {
+      const error: IError = {
         message: err.message,
         status: err.status,
+      };
+      throw error;
+    }
+  }
+  async deleteLikes(post_id: number): Promise<boolean> {
+    try {
+      const connection = await db.connect();
+      const query = `DELETE FROM post_like WHERE post_id=$1`;
+      await connection.query(query, [post_id]);
+      connection.release();
+      return true;
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status,
+      };
+      throw error;
+    }
+  }
+  async getComments(post_id: number): Promise<Comment[]> {
+    try {
+      const connection = await db.connect();
+      const query = `SELECT * FROM post_comment WHERE post_id=$1`;
+      const { rows } = await connection.query(query, [post_id]);
+      connection.release();
+      return rows;
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 404,
+      };
+      throw error;
+    }
+  }
+  async getLikes(post_id: number): Promise<User[]> {
+    try {
+      const connection = await db.connect();
+      const query = `SELECT * FROM post_like WHERE post_id=$1`;
+      const { rows } = await connection.query(query, [post_id]);
+      connection.release();
+      return rows;
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 404,
+      };
+      throw error;
+    }
+  }
+  async getPostsBySearch(query: string): Promise<Post[]> {
+    try {
+      const connection = await db.connect();
+      const { rows } = await connection.query(
+        `SELECT * FROM post WHERE post_content LIKE '%${query}%'`
+      );
+      connection.release();
+      return rows;
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 404,
       };
       throw error;
     }

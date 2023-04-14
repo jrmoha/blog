@@ -1,3 +1,4 @@
+import bcryptjs from 'bcryptjs';
 export const getHashtags = (query: string): string[] => {
   const regex = /\B(#[a-zA-Z0-9_]+\b)(?!;)/gm;
   const hashtags = query.match(regex);
@@ -10,29 +11,35 @@ export const getHashtags = (query: string): string[] => {
   return [...new Set(hashtags)];
 };
 
-export const formatTime = (lastseen_string: string): string => {
+export const formatTime = (lastseen_string: string): object => {
   const lastseen_time = Date.parse(lastseen_string);
   let diff = new Date().getTime() - lastseen_time;
   const day = 24 * 60 * 60 * 1000;
+  const year = 365 * day;
+  const month = 30 * day;
+  const week = 7 * day;
+
   let last_active = '';
-  if (diff > day * 356) {
+  let current_status = 'offline';
+  if (diff > year) {
     //more than a year
-    last_active += `${Math.floor(diff / (day * 365))} Years`;
-    diff /= day * 365;
-  } else if (diff > day * 30 && diff < day * 365) {
+    last_active += `${Math.floor(diff / year)} Years`;
+    diff /= year;
+  } else if (diff > month && diff < year) {
     //more than a month less than a year
-    last_active += `${Math.floor(diff / (day * 30))} Months`;
-    diff /= day * 30;
-  } else if (diff > day * 7 && diff < day * 30) {
+    last_active += `${Math.floor(diff / month)} Months`;
+    diff /= month;
+  } else if (diff > week && diff < month) {
     //more than a week less than a month
-    last_active += `${Math.floor(diff / (day * 7))} Week`;
-    diff /= day * 7;
-  } else if (diff > day && diff < day * 7) {
+    last_active += `${Math.floor(diff / week)} Week`;
+    diff /= week;
+  } else if (diff > day && diff < week) {
     //more than a day less than a week
     last_active += `${Math.floor(diff / day)} Day`;
     diff /= day;
   } else if (diff < 60000) {
     last_active = 'Now';
+    current_status = 'online';
   } else {
     //less than a day
     if (Math.ceil(diff / (60 * 1000)) > 60) {
@@ -43,5 +50,15 @@ export const formatTime = (lastseen_string: string): string => {
       last_active += `${Math.ceil(diff / (60 * 1000))} Mintues`;
     }
   }
-  return last_active;
+  return { current_status, last_active };
+};
+export const hashPassword = async (password: string): Promise<string> => {
+  const salt = bcryptjs.genSaltSync(10);
+  return bcryptjs.hashSync(password, salt);
+};
+export const comparePassword = async (
+  password: string,
+  hashed: string
+): Promise<boolean> => {
+  return bcryptjs.compareSync(password, hashed);
 };

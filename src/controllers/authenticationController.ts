@@ -1,17 +1,17 @@
 import { Request, Response } from 'express';
 import userModel from '../models/userModel';
-export const login = async (req: Request, res: Response) => {
+export const loginController = async (req: Request, res: Response) => {
   try {
     const { username, password } = req.body;
     const response = await userModel.authenticateUser(username, password);
-    Promise.allSettled([userModel.addActivity(username, 'You Logged In')]);
+    userModel.addActivity(username, 'You Logged In');
     res.json(response);
   } catch (err: any) {
     res.json({ message: err.message, status: err.status });
   }
 };
 
-export const register = async (req: Request, res: Response) => {
+export const registerController = async (req: Request, res: Response) => {
   try {
     const { username, password, email, first_name, last_name, birth_date } =
       req.body;

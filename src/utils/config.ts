@@ -8,7 +8,7 @@ const {
   DATABASE_USERNAME,
   DATABASE_PASSWORD,
   DATABASE_PORT,
-  LASTSEEN_TIMEOUT,
+  LASTSEEN_TIMEOUT
   // eslint-disable-next-line no-undef
 } = process.env;
 

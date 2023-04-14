@@ -8,7 +8,7 @@ export const createPost = async (req: Request, res: Response) => {
   try {
     const { username, content } = req.body;
     const response: Post = await postModel.createPost(username, content);
-    const hashTags = getHashtags(content); //returns an array of hashtags in the post with no duplicates
+    const hashTags = getHashtags(content);
     Promise.allSettled([
       postModel.addHashtags(response.post_id, hashTags),
       userModel.addActivity(username, 'You Created A Post'),
@@ -23,7 +23,7 @@ export const editPost = async (req: Request, res: Response) => {
     const { post_id, new_content } = req.body;
     const response: Post = await postModel.editPost(post_id, new_content);
     const hashTags = getHashtags(new_content);
-    Promise.allSettled([
+    Promise.all([
       postModel.deleteHashtags(post_id), //delete all hashtags associated with the post
       postModel.addHashtags(post_id, hashTags), //insert new hashtags
       userModel.addActivity(response.username, 'You Edited A Post'), //add activity to user
@@ -40,6 +40,7 @@ export const deletePost = async (req: Request, res: Response) => {
       postModel.deleteHashtags(post_id),
       postModel.deleteComments(post_id),
       postModel.deleteViews(post_id),
+      postModel.deleteLikes(post_id),
       userModel.addActivity(username, 'You Deleted A Post'),
     ]);
     const response: boolean = await postModel.deletePost(post_id);
@@ -98,7 +99,7 @@ export const addComment = async (req: Request, res: Response) => {
     );
     if (response) {
       userModel.addActivity(username, 'You Commented On A Post');
-      res.json({ message: 'Comment Added' });
+      res.json(response);
     } else {
       res.json({ message: 'Post Not Found' });
     }
@@ -124,11 +125,11 @@ export const editComment = async (req: Request, res: Response) => {
   try {
     const { comment_id, new_comment } = req.body;
     const response: Comment = await postModel.editComment(
-      comment_id,
-      new_comment
+      comment_id as number,
+      new_comment as string
     );
     if (response) {
-      res.json({ message: 'Comment Edited' });
+      res.json(response);
     } else {
       res.json({ message: 'Post Not Found' });
     }
@@ -163,6 +164,19 @@ export const getPostsByHashtag = async (req: Request, res: Response) => {
     const hashtag: string = req.params.hashtag;
     const response: Post[] = await postModel.getPostsByHashtag(hashtag);
     res.json(response);
+  } catch (err: any) {
+    res.json({ message: err.message, status: err.status });
+  }
+};
+export const searchForAPost = async (req: Request, res: Response) => {
+  try {
+    const query = req.query.q as string;
+    const response: Post[] = await postModel.getPostsBySearch(query);
+    if (response.length) {
+      res.json(response);
+    } else {
+      res.json({ message: 'No Posts Found' });
+    }
   } catch (err: any) {
     res.json({ message: err.message, status: err.status });
   }

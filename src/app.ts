@@ -1,66 +1,18 @@
 import express, { Application, Request, Response } from 'express';
 import config from './utils/config';
-import * as auth from './controllers/authController';
-import * as post from './controllers/postController';
-import * as user from './controllers/userController';
-import userModel from './models/userModel';
+import authRouter from './routes/authenticationRouter';
+import postRouter from './routes/postRouter';
 import { formatTime } from './utils/functions';
 const app: Application = express();
 const port: number = config.PORT;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-app.get('/', async (req: Request, res: Response) => {
-  res.send('Hello world');
-});
-app.post('/login', auth.login);
-app.post('/register', auth.register);
-app.post('/create', post.createPost);
-app.put('/edit', post.editPost);
-app.get('/posts/:post_id', post.getPost);
-app.post('/viewPost', post.viewPost);
-app.delete('/deletePost', post.deletePost);
-app.post('/likePost', post.likePost);
-app.delete('/unlikePost', post.unlikePost);
-app.get('/userPosts/:username', post.getPostsByUser);
-app.get('/hashtags/:hashtag', post.getPostsByHashtag);
-
-app.put('/changePassword', user.changePasswordController);
-app.put('/updateUser', user.updateUserController);
-app.get('/followers/:username', async (req: Request, res: Response) => {
-  try {
-    const username: string = req.params.username;
-    const result = await userModel.getFollowers(username);
-    res.status(200).send(result);
-  } catch (err) {
-    res.json(err);
-  }
-});
-app.get('/following/:username', async (req: Request, res: Response) => {
-  try {
-    const username: string = req.params.username;
-    const result = await userModel.getFollowings(username);
-    res.status(200).send(result);
-  } catch (err) {
-    res.json(err);
-  }
-});
-app.get('/online', async (req: Request, res: Response) => {
-  try {
-    const result = await userModel.getUsersOnline('dash');
-    res.status(200).send(result);
-  } catch (err) {
-    res.json(err);
-  }
-});
-app.get('/lastseen', async (req: Request, res: Response) => {
-  try {
-    const result: string = await userModel.lastseen('this is new');
-    // const time = Date.parse(result);
-    const q = formatTime(result);
-    res.status(200).send({ lastseen: q });
-  } catch (err) {
-    res.json(err);
-  }
+app.use('/authentication', authRouter);
+app.use('/posts', postRouter);
+app.get('/', async (_req: Request, res: Response) => {
+  const time = formatTime(
+    new Date(new Date().getTime() - 1000 * 60).toISOString()
+  );
+  res.send(time);
 });
 app.listen(port);
