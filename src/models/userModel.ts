@@ -164,13 +164,18 @@ class userModel {
       throw error;
     }
   }
-  async insertSession(username: string, session_id: string): Promise<boolean> {
+  async insertSession(
+    session_id: string,
+    username: string,
+    remoteAddress: string
+  ): Promise<boolean> {
     try {
       const connection: PoolClient = await db.connect();
-      const query = `INSERT INTO user_session(username,session_id) VALUES($1,$2)`;
+      const query = `INSERT INTO user_session(session_id,username,ip_address) VALUES($1,$2,$3)`;
       const { rowCount } = await connection.query(query, [
-        username,
         session_id,
+        username,
+        remoteAddress,
       ]);
       connection.release();
       return rowCount == 1;
@@ -525,7 +530,7 @@ class userModel {
     try {
       const connection: PoolClient = await db.connect();
       let query = `SELECT username FROM user_session `;
-      query += `WHERE update_time>$1 AND username!=$2 `;
+      query += `WHERE update_time>$1 `;
       query += `AND username IN (SELECT followed_username FROM follow WHERE follower_username=$2 AND follow_status=1)`;
       query += `GROUP BY username`;
       const { rows } = await connection.query(query, [
@@ -568,7 +573,7 @@ class userModel {
       throw error;
     }
   }
-  async findOrCreate(profile: any): Promise<any | null> {
+  async findOrCreate(profile: any): Promise<any> {
     try {
       const connection: PoolClient = await db.connect();
       const search_user_exists_query = `SELECT username FROM provider WHERE provider_id=$1`;
@@ -579,7 +584,7 @@ class userModel {
       connection.release();
       if (search_user_exists_result.rowCount == 0) {
         const user: User = await this.registerUser(
-          profile._json.name,
+          profile._json.login,
           `${profile.id}${profile._json.email}`,
           profile._json.email,
           profile._json.name,
@@ -594,6 +599,10 @@ class userModel {
         if (!insert_provider) {
           return null;
         } else {
+          Promise.all([
+            this.initOptions(user.username),
+            this.addActivity(user.username, 'You Created This Account'),
+          ]);
           profile.username = user.username;
           profile.user = user;
         }

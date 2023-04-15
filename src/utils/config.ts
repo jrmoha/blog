@@ -8,7 +8,15 @@ const {
   DATABASE_USERNAME,
   DATABASE_PASSWORD,
   DATABASE_PORT,
-  LASTSEEN_TIMEOUT
+  LASTSEEN_TIMEOUT,
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET,
+  GOOGLE_CALLBACK_URL,
+  GITHUB_CLIENT_ID,
+  GITHUB_CLIENT_SECRET,
+  GITHUB_CALLBACK_URL,
+  JWT_SECRET,
+  MESSAGE_SECRET,
   // eslint-disable-next-line no-undef
 } = process.env;
 
@@ -22,4 +30,20 @@ export default {
     port: DATABASE_PORT,
   },
   lastseen_timeout: parseInt(LASTSEEN_TIMEOUT as string, 10),
+  google: {
+    clientID: GOOGLE_CLIENT_ID,
+    clientSecret: GOOGLE_CLIENT_SECRET,
+    callbackURL: GOOGLE_CALLBACK_URL,
+  },
+  github: {
+    clientID: GITHUB_CLIENT_ID,
+    clientSecret: GITHUB_CLIENT_SECRET,
+    callbackURL: GITHUB_CALLBACK_URL,
+  },
+  jwt: {
+    secret: JWT_SECRET,
+  },
+  message: {
+    secret: MESSAGE_SECRET,
+  },
 };

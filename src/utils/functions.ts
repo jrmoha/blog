@@ -1,4 +1,5 @@
 import bcryptjs from 'bcryptjs';
+
 export const getHashtags = (query: string): string[] => {
   const regex = /\B(#[a-zA-Z0-9_]+\b)(?!;)/gm;
   const hashtags = query.match(regex);
@@ -18,7 +19,6 @@ export const formatTime = (lastseen_string: string): object => {
   const year = 365 * day;
   const month = 30 * day;
   const week = 7 * day;
-
   let last_active = '';
   let current_status = 'offline';
   if (diff > year) {
