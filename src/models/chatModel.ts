@@ -58,6 +58,8 @@ class ChatModel {
         receiver,
         message,
       ]);
+      const update_inbox_query = `UPDATE inbox SET last_message=$1 last_message_time=NOW() WHERE inbox_id=$2`;
+      connection.query(update_inbox_query, [message, inbox_id]);
       connection.release();
       return rows[0];
     } catch (err: any) {
@@ -68,28 +70,24 @@ class ChatModel {
       throw error;
     }
   }
-  async updateInboxLastMessage(
-    inbox_id: number,
-    message: string
-  ): Promise<Inbox> {
-    try {
-      const connection = await db.connect();
-      const query = `UPDATE inbox SET last_message=$1 last_message_time=$2 WHERE inbox_id=$3 RETURNING *`;
-      const { rows } = await connection.query(query, [
-        message,
-        Date.now(),
-        inbox_id,
-      ]);
-      connection.release();
-      return rows[0];
-    } catch (err: any) {
-      const error: IError = {
-        message: err.message,
-        status: err.status || 400,
-      };
-      throw error;
-    }
-  }
+  // async updateInboxLastMessage(
+  //   inbox_id: number,
+  //   message: string
+  // ): Promise<Inbox> {
+  //   try {
+  //     const connection = await db.connect();
+  //     const query = `UPDATE inbox SET last_message=$1 last_message_time=NOW() WHERE inbox_id=$2 RETURNING *`;
+  //     const { rows } = await connection.query(query, [message, inbox_id]);
+  //     connection.release();
+  //     return rows[0];
+  //   } catch (err: any) {
+  //     const error: IError = {
+  //       message: err.message,
+  //       status: err.status || 400,
+  //     };
+  //     throw error;
+  //   }
+  // }
   async getUserInbox(username: string): Promise<Inbox[]> {
     try {
       const connection = await db.connect();
@@ -108,7 +106,7 @@ class ChatModel {
   async getInboxMessages(inbox_id: number): Promise<Message[]> {
     try {
       const connection = await db.connect();
-      const query = `SELECT message_id,sender,receiver,created_at FROM message WHERE inbox_id=$1`;
+      const query = `SELECT message_id,sender,receiver,created_at FROM message WHERE inbox_id=$1 ORDER BY created_at DESC`;
       const { rows } = await connection.query(query, [inbox_id]);
       connection.release();
       return rows;

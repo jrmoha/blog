@@ -63,7 +63,7 @@ class postModel {
       const query = `UPDATE post SET post_content = $1,update_date=$2 WHERE post_id = $3 RETURNING *`;
       const { rows } = await connection.query(query, [
         content,
-        new Date().toISOString().slice(0, 10),
+        `NOW()`,
         post_id,
       ]);
       connection.release();
@@ -238,7 +238,7 @@ class postModel {
         query = `UPDATE view_post SET view_date=$1 WHERE username=$2 AND post_id=$3 `;
         query += `AND view_date IN (SELECT view_date FROM view_post WHERE username=$4 AND post_id=$5 ORDER BY view_date DESC LIMIT 1)`;
         result = await connection.query(query, [
-          new Date().toISOString(),
+          `NOW()`,
           username,
           post_id,
           username,
@@ -336,7 +336,7 @@ class postModel {
   async getLikes(post_id: number): Promise<User[]> {
     try {
       const connection = await db.connect();
-      const query = `SELECT * FROM post_like WHERE post_id=$1`;
+      const query = `SELECT username FROM post_like WHERE post_id=$1`;
       const { rows } = await connection.query(query, [post_id]);
       connection.release();
       return rows;
@@ -356,6 +356,55 @@ class postModel {
       );
       connection.release();
       return rows;
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 404,
+      };
+      throw error;
+    }
+  }
+  async addImages(post_id: number, images: string[]): Promise<boolean> {
+    try {
+      const connection = await db.connect();
+      let query = `INSERT INTO post_images (post_id,img_src) VALUES`;
+      images.forEach((image) => {
+        query += `(${post_id},'${image}'),`;
+      });
+      query = query.substring(0, query.length - 1);
+      const { rowCount } = await connection.query(query);
+      connection.release();
+      return rowCount === images.length;
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 404,
+      };
+      throw error;
+    }
+  }
+  async getImages(post_id: number): Promise<string[]> {
+    try {
+      const connection = await db.connect();
+      const query = `SELECT img_src FROM post_images WHERE post_id=$1`;
+      const { rows } = await connection.query(query, [post_id]);
+      connection.release();
+      return rows;
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 404,
+      };
+      throw error;
+    }
+  }
+  async getUserLikedPostsAsArray(username: string): Promise<number[]> {
+    try {
+      const connection = await db.connect();
+      const query = `SELECT post_id FROM post_like WHERE username=$1`;
+      const { rows } = await connection.query(query, [username]);
+      connection.release();
+      return rows.map((row) => row.post_id);
     } catch (err: any) {
       const error: IError = {
         message: err.message,

@@ -3,8 +3,10 @@ import * as authController from '../controllers/authenticationController';
 import passport from '../passport';
 
 const router = Router();
-router.post('/register', authController.registerController);
+router.get('/login', authController.loginPageController);
 router.post('/login', authController.loginController);
+router.get('/registration', authController.regPageController);
+router.post('/registration', authController.registerController);
 router.get(
   '/auth/google',
   passport.authenticate('google', { scope: ['email', 'profile'] })

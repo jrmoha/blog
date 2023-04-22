@@ -4,5 +4,4 @@ interface IError {
   stack?: string;
   status: number;
 }
-  export default IError;
-  
+export default IError;

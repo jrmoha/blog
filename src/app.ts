@@ -1,12 +1,25 @@
 import express, { Application, Request, Response } from 'express';
+import session from 'express-session';
+import cors from 'cors';
+import http from 'http';
+import bodyParser from 'body-parser';
+import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
+import io from './socket';
 import config from './utils/config';
 import authRouter from './routes/authenticationRouter';
 import postRouter from './routes/postRouter';
-import { formatTime } from './utils/functions';
-import session from 'express-session';
-import cors from 'cors';
+import { formatTime, formatUserStatusTime } from './utils/functions';
 import db from './database';
+import userModel from './models/userModel';
+
 const app: Application = express();
+app.use(express.static(__dirname + '/public'));
+app.set('view engine', 'ejs');
+app.set('views', 'src/views');
+const httpServer = http.createServer(app);
+io(httpServer);
 const port: number = config.PORT;
 app.set('trust proxy', 1);
 app.use(
@@ -14,16 +27,23 @@ app.use(
     secret: config.jwt.secret as string,
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: true },
+    cookie: {
+      secure: true,
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+    },
   })
 );
-app.use(express.json());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(cookieParser());
+app.use(helmet());
+app.use(morgan('combined'));
 app.use(
   cors({
     origin: '*',
   })
 );
-app.use(express.urlencoded({ extended: true }));
 app.use('/', authRouter);
 app.use('/posts', postRouter);
 app.get('/trendingHashtags', async (_req: Request, res: Response) => {
@@ -91,8 +111,70 @@ app.get('/friends', async (_req: Request, res: Response) => {
   query += `ORDER BY lastseen DESC;`;
   const { rows } = await connection.query(query);
   rows.forEach((row: any) => {
-    row.lastseen = formatTime(row.lastseen);
+    row.lastseen = formatUserStatusTime(row.lastseen);
   });
   res.json(rows);
 });
-app.listen(port);
+app.get('/profile', async (req: Request, res: Response) => {
+  try {
+    const current_username = req.query.current_username;
+    const target_username = req.query.target_username;
+    //to check if the two usernames exist
+    const result: any = {};
+    const connection = await db.connect();
+    const basic_info_query = `SELECT username,first_name,last_name,email FROM users WHERE username=$1`;
+    const basic_info_result = await connection.query(basic_info_query, [
+      target_username,
+    ]);
+    result['basic_info'] = basic_info_result.rows[0];
+    const follow_status_query = `SELECT follow_status FROM follow WHERE follower_username=$1 AND followed_username=$2 AND follow_status=1`;
+    const follow_status_result = await connection.query(follow_status_query, [
+      current_username,
+      target_username,
+    ]);
+    result['follow_status'] = follow_status_result.rowCount == 1;
+    const posts_query = `SELECT * FROM post WHERE username=$1 ORDER BY upload_date DESC`;
+    const posts_result = await connection.query(posts_query, [target_username]);
+    result['posts'] = posts_result.rows;
+    const post_comment_query = `SELECT * FROM post_comment WHERE post_id=$1`;
+    const post_likes_query = `SELECT * FROM post_like WHERE post_id=$1`;
+    result.posts.forEach(async (post: any) => {
+      post.upload_date = formatTime(post.upload_date);
+      post.update_date = formatTime(post.update_date);
+      const post_comment_result = await connection.query(post_comment_query, [
+        post.post_id,
+      ]);
+      post.comments = post_comment_result.rows;
+      post.comments.forEach((comment: any) => {
+        comment.comment_date = formatTime(comment.comment_date);
+      });
+      const post_likes_result = await connection.query(post_likes_query, [
+        post.post_id,
+      ]);
+      post.likes = post_likes_result.rows;
+    });
+
+    const likes_query = `SELECT username FROM post WHERE post_id IN (SELECT post_id FROM post_like WHERE username=$1) ORDER BY upload_date DESC`;
+    const likes_result = await connection.query(likes_query, [target_username]);
+    result['likes'] = likes_result.rows;
+    connection.release();
+    return res.json(result);
+  } catch (err: any) {
+    return res.json({ error: err.message });
+  }
+});
+app.get('/hello', async (req, res) => {
+  try {
+    const current_username = req.query.current_username as string;
+    const target_username = req.query.target_username as string;
+    const result: any = await userModel.loadProfile(
+      current_username,
+      target_username
+    );
+    res.status(200).json(result);
+  } catch (err) {
+    res.json(err);
+  }
+});
+// app.listen(port);
+httpServer.listen(port);

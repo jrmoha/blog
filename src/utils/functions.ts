@@ -12,7 +12,7 @@ export const getHashtags = (query: string): string[] => {
   return [...new Set(hashtags)];
 };
 
-export const formatTime = (lastseen_string: string): object => {
+export const formatUserStatusTime = (lastseen_string: string): object => {
   const lastseen_time = Date.parse(lastseen_string);
   let diff = new Date().getTime() - lastseen_time;
   const day = 24 * 60 * 60 * 1000;
@@ -51,6 +51,10 @@ export const formatTime = (lastseen_string: string): object => {
     }
   }
   return { current_status, last_active };
+};
+export const formatTime = (time: string): string => {
+  const d: any = formatUserStatusTime(time);
+  return d.last_active;
 };
 export const hashPassword = async (password: string): Promise<string> => {
   const salt = bcryptjs.genSaltSync(10);

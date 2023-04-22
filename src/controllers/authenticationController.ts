@@ -1,20 +1,61 @@
 import { Request, Response } from 'express';
 import userModel from '../models/userModel';
-
+import jwt from 'jsonwebtoken';
+import config from '../utils/config';
+import postModel from '../models/postModel';
+export const loginPageController = async (req: Request, res: Response) => {
+  res.render('login');
+};
 export const loginController = async (req: Request, res: Response) => {
   try {
     const { username, password } = req.body;
+    console.log(username, password);
     const response = await userModel.authenticateUser(username, password);
     Promise.allSettled([
-      userModel.insertSession(req.session.id, username, '74.125.127.100'),
+      userModel.insertSession(
+        req.session.id,
+        username,
+        req.socket.remoteAddress as string
+      ),
       userModel.addActivity(username, 'You Logged In.'),
     ]);
-    res.json(response);
+    const info_result = await Promise.all([
+      userModel.getCurrentProfileImage(username),
+      userModel.getOptions(username),
+      postModel.getUserLikedPostsAsArray(username),
+    ]);
+    const token = jwt.sign(
+      {
+        user: response,
+        session: req.session.id,
+        profile_image: info_result[0],
+        options: info_result[1],
+        liked_posts: info_result[2],
+      },
+      config.jwt.secret as string,
+      {
+        expiresIn: '7d',
+        header: {
+          alg: 'HS256',
+          typ: 'JWT',
+        },
+      }
+    );
+    res.cookie('jwt', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+    });
+    res.json(token);
   } catch (err: any) {
-    res.json({ message: err.message, status: err.status });
+    console.log(err);
+    res.render('login', { error_msg: err.message });
   }
 };
-
+export const regPageController = async (req: Request, res: Response) => {
+  res.render('registration');
+};
 export const registerController = async (req: Request, res: Response) => {
   try {
     const { username, password, email, first_name, last_name, birth_date } =
@@ -29,8 +70,40 @@ export const registerController = async (req: Request, res: Response) => {
     );
     Promise.allSettled([
       userModel.addActivity(username, 'You Created This Account.'),
-      userModel.initOptions(username),
+      userModel.insertSession(
+        req.session.id,
+        username,
+        req.socket.remoteAddress as string
+      ),
     ]);
+    const all_info = await Promise.all([
+      userModel.insertDefaultImage(username),
+      userModel.initOptions(username),
+      postModel.getUserLikedPostsAsArray(username),
+    ]);
+    const token = jwt.sign(
+      {
+        user: response,
+        session: req.session.id,
+        profile_image: all_info[0],
+        options: all_info[1],
+        liked_posts: all_info[2],
+      },
+      config.jwt.secret as string,
+      {
+        expiresIn: '7d',
+        header: {
+          alg: 'HS256',
+          typ: 'JWT',
+        },
+      }
+    );
+    res.cookie('jwt', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+    });
     res.json(response);
   } catch (err: any) {
     res.json({ message: err.message, status: err.status });
@@ -55,12 +128,33 @@ export const providerLoginController = async function (
 ) {
   const user = req.user as any;
   if (!user) throw new Error('User Not Found');
+  console.log(user.user);
   Promise.all([
-    userModel.insertSession(req.session.id, user.username, '74.125.127.100'),
+    userModel.insertSession(
+      req.session.id,
+      user.username,
+      req.socket.remoteAddress as string
+    ),
     userModel.addActivity(
       user.username,
       `You Logged In Using ${user.provider}`
     ),
   ]);
-  res.json(user);
+  const info_result = await Promise.all([
+    userModel.getCurrentProfileImage(user.username),
+    userModel.getOptions(user.username),
+    postModel.getUserLikedPostsAsArray(user.username),
+  ]);
+  const token = jwt.sign(
+    {
+      user: user.user,
+      session: req.session.id,
+      profile_image: info_result[0],
+      options: info_result[1],
+      liked_posts: info_result[2],
+    },
+    config.jwt.secret as string
+  );
+  res.cookie('jwt', token);
+  res.send(token);
 };

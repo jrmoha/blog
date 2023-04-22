@@ -3,9 +3,17 @@ import User from '../types/user_type';
 import IError from '../interfaces/error';
 import Options from '../types/options_type';
 import { PoolClient } from 'pg';
-import config from '../utils/config';
-import { comparePassword, hashPassword } from '../utils/functions';
-const { lastseen_timeout } = config; //30000ms
+import postModel from './postModel';
+//import config from '../utils/config';
+import {
+  comparePassword,
+  hashPassword,
+  formatUserStatusTime,
+  formatTime,
+} from '../utils/functions';
+import Post from '../types/post_type';
+//const { lastseen_timeout } = config; //30000ms
+
 class userModel {
   async username_email_taken(
     username: string,
@@ -89,7 +97,7 @@ class userModel {
       const err: IError = {
         name: 'Authentication Error',
         message: ``,
-        status: 401,
+        status: 404,
       };
       if (result.rows.length == 0) {
         err.message = `This Username Doesn't Exist`;
@@ -255,9 +263,9 @@ class userModel {
           follower_username,
           followed_username,
         ]);
+        connection.release();
         return reuslt.rowCount == 1;
       }
-      connection.release();
     } catch (err: any) {
       const error: IError = {
         message: err.message,
@@ -511,37 +519,13 @@ class userModel {
       throw error;
     }
   }
-  async lastseen(username: string): Promise<string> {
+  async lastseen(username: string): Promise<object> {
     try {
       const connection: PoolClient = await db.connect();
       const query = `SELECT MAX(update_time) AS "update_time" FROM user_session WHERE username=$1`;
       const { rows } = await connection.query(query, [username]);
       connection.release();
-      return rows[0].update_time;
-    } catch (err: any) {
-      const error: IError = {
-        message: err.message,
-        status: err.status || 400,
-      };
-      throw error;
-    }
-  }
-  async getUsersOnline(current_username: string): Promise<User[]> {
-    try {
-      const connection: PoolClient = await db.connect();
-      let query = `SELECT username FROM user_session `;
-      query += `WHERE update_time>$1 `;
-      query += `AND username IN (SELECT followed_username FROM follow WHERE follower_username=$2 AND follow_status=1)`;
-      query += `GROUP BY username`;
-      const { rows } = await connection.query(query, [
-        new Date(new Date().getTime() - lastseen_timeout)
-          .toISOString()
-          .replace('T', ' ')
-          .slice(0, -5),
-        current_username,
-      ]);
-      connection.release();
-      return rows[0];
+      return formatUserStatusTime(rows[0].update_time); //turns date time into human readable time with status whether online or offline
     } catch (err: any) {
       const error: IError = {
         message: err.message,
@@ -589,7 +573,7 @@ class userModel {
           profile._json.email,
           profile._json.name,
           profile._json.name,
-          new Date().toISOString().slice(0, 19).replace('T', ' ')
+          `NOW()`
         );
         const insert_provider: boolean = await this.insertProvider(
           profile.id,
@@ -602,6 +586,7 @@ class userModel {
           Promise.all([
             this.initOptions(user.username),
             this.addActivity(user.username, 'You Created This Account'),
+            this.insertDefaultImage(user.username),
           ]);
           profile.username = user.username;
           profile.user = user;
@@ -614,6 +599,201 @@ class userModel {
         profile.user = user;
       }
       return profile;
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 400,
+      };
+      throw error;
+    }
+  }
+  // async getUsersOnline(current_username: string): Promise<User[]> {
+  //   try {
+  //     const connection: PoolClient = await db.connect();
+  //     let query = `SELECT username FROM user_session `;
+  //     query += `WHERE update_time>$1 `;
+  //     query += `AND username IN (SELECT followed_username FROM follow WHERE follower_username=$2 AND follow_status=1)`;
+  //     query += `GROUP BY username`;
+  //     const { rows } = await connection.query(query, [
+  //       new Date(new Date().getTime() - lastseen_timeout)
+  //         .toISOString()
+  //         .replace('T', ' ')
+  //         .slice(0, -5),
+  //       current_username,
+  //     ]);
+  //     connection.release();
+  //     return rows[0];
+  //   } catch (err: any) {
+  //     const error: IError = {
+  //       message: err.message,
+  //       status: err.status || 400,
+  //     };
+  //     throw error;
+  //   }
+  // }
+  async onlineUsers(): Promise<User[]> {
+    try {
+      const connection: PoolClient = await db.connect();
+      let query = `SELECT username FROM user_session WHERE update_time>=NOW()-INTERVAL '30 seconds' `;
+      query += `GROUP BY username`;
+      const { rows } = await connection.query(query);
+      connection.release();
+      return rows;
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 400,
+      };
+      throw error;
+    }
+  }
+  async friendStatus(username: string): Promise<User[]> {
+    try {
+      const connection: PoolClient = await db.connect();
+      let query = `SELECT f.followed_username,MAX(u.update_time) AS lastseen FROM follow f `;
+      query += `JOIN user_session u ON u.username=f.followed_username `;
+      query += `WHERE f.follower_username=$1 AND f.follow_status=1 GROUP BY f.followed_username `;
+      query += `ORDER BY lastseen DESC;`;
+      const { rows } = await connection.query(query, [username]);
+      connection.release();
+      rows.forEach((row: any) => {
+        row.lastseen = formatUserStatusTime(row.lastseen);
+      });
+      return rows;
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 400,
+      };
+      throw error;
+    }
+  }
+  async isFollowing(follower: string, followed: string): Promise<boolean> {
+    try {
+      const connection = await db.connect();
+      const query = `SELECT follow_status FROM follow WHERE follower_username=$1 AND followed_username=$2 AND follow_status=1`;
+      const { rowCount } = await connection.query(query, [follower, followed]);
+      return rowCount == 1;
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 400,
+      };
+      throw error;
+    }
+  }
+  async loadProfile(
+    current_username: string,
+    profile_username: string
+  ): Promise<any> {
+    try {
+      const final_result: any = {};
+      const all_result = await Promise.all([
+        this.getUserByUsername(profile_username),
+        this.isFollowing(current_username, profile_username),
+        postModel.getPosts(profile_username),
+      ]);
+      const basic_info: User = all_result[0];
+      const isFollowing = all_result[1];
+      const user_posts: Post[] = all_result[2];
+      //const img=
+      for (let i = 0; i < user_posts.length; i++) {
+        user_posts[i].comments = await postModel.getComments(
+          user_posts[i].post_id
+        );
+        user_posts[i].comments?.forEach((comment) => {
+          comment.comment_time = formatTime(comment.comment_time);
+        });
+        user_posts[i].likes = await postModel.getLikes(user_posts[i].post_id);
+        user_posts[i].upload_date = formatTime(
+          user_posts[i].upload_date as string
+        );
+      }
+      final_result.basic_info = basic_info;
+      final_result.following_status = isFollowing;
+      final_result.posts = user_posts;
+      return final_result;
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 400,
+      };
+      throw error;
+    }
+  }
+  async insertDefaultImage(username: string): Promise<string> {
+    try {
+      const connection: PoolClient = await db.connect();
+      const query = `INSERT INTO user_image (username,img_src) VALUES ($1,$2) RETURNING img_src`;
+      const { rows } = await connection.query(query, [
+        username,
+        'default_user.jpg',
+      ]);
+      connection.release();
+      return rows[0].image;
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 400,
+      };
+      throw error;
+    }
+  }
+  async insertProfileImage(
+    username: string,
+    image: string
+  ): Promise<string | null> {
+    try {
+      const connection: PoolClient = await db.connect();
+      const query = `INSERT INTO user_image (username,img_src) VALUES ($1,$2) RETURNING img_src`;
+      const { rows } = await connection.query(query, [username, image]);
+      connection.release();
+      return rows[0].img_src;
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 400,
+      };
+      throw error;
+    }
+  }
+  async getUserImages(username: string): Promise<string[]> {
+    try {
+      const connection: PoolClient = await db.connect();
+      const query = `SELECT img_src FROM user_image WHERE username=$1`;
+      const { rows } = await connection.query(query, [username]);
+      connection.release();
+      return rows;
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 400,
+      };
+      throw error;
+    }
+  }
+  async getCurrentProfileImage(username: string): Promise<string> {
+    try {
+      const connection = await db.connect();
+      const query = `SELECT MAX(img_src) AS "img_src" FROM user_image WHERE username=$1`;
+      const { rows } = await connection.query(query, [username]);
+      connection.release();
+      return rows[0].img_src;
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 400,
+      };
+      throw error;
+    }
+  }
+  async getOptions(username: string): Promise<Options> {
+    try {
+      const connection = await db.connect();
+      const query = `SELECT * FROM options WHERE username=$1`;
+      const { rows } = await connection.query(query, [username]);
+      connection.release();
+      return rows[0];
     } catch (err: any) {
       const error: IError = {
         message: err.message,
