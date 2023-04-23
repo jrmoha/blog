@@ -104,3 +104,6 @@ dist
 .tern-port
 
 google.json
+src/public/images
+src/public/style
+src/public/webfonts

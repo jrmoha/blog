@@ -13,8 +13,10 @@ import postRouter from './routes/postRouter';
 import { formatTime, formatUserStatusTime } from './utils/functions';
 import db from './database';
 import userModel from './models/userModel';
+import errorMiddleware from './middleware/errorMiddleware';
 
 const app: Application = express();
+// eslint-disable-next-line no-undef
 app.use(express.static(__dirname + '/public'));
 app.set('view engine', 'ejs');
 app.set('views', 'src/views');
@@ -176,5 +178,26 @@ app.get('/hello', async (req, res) => {
     res.json(err);
   }
 });
+import { verify } from 'jsonwebtoken';
+app.get('/token', async (req, res) => {
+  try {
+    const token = req.cookies.jwt;
+    console.log(token);
+    if (!token) {
+      return res.status(401).redirect('/login');
+    }
+    verify(token, config.jwt.secret as string, (err: any, decoded: any) => {
+      if (err) {
+        return res.status(401).render('404', { title: '404', error: err });
+      }
+      console.log(decoded);
+      res.locals.user = decoded;
+      return res.status(200).json(res.locals.user);
+    });
+  } catch (error) {
+    return res.status(401).redirect('/login');
+  }
+});
+app.use(errorMiddleware);
 // app.listen(port);
 httpServer.listen(port);
