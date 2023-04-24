@@ -802,6 +802,37 @@ class userModel {
       throw error;
     }
   }
+  async getFeed(username: string): Promise<Post[]> {
+    try {
+      const connection = await db.connect();
+      let query = `SELECT p.post_id,p.username,p.upload_date,p.update_date,p.post_content,`;
+      query += `pi.img_src AS "post_img",ui.img_src AS "user_img",`;
+      query += `(SELECT COUNT(post_id) FROM post_like WHERE post_id=p.post_id) AS "likes_number",`;
+      query += `(SELECT COUNT(post_id) FROM post_comment WHERE post_id=p.post_id) AS "comments_number" `;
+      query += `FROM post p `;
+      query += `LEFT JOIN post_images pi ON pi.post_id=p.post_id `;
+      query += `JOIN user_image ui ON ui.username=p.username `;
+      query += `WHERE p.username IN `;
+      query += `(SELECT followed_username FROM follow WHERE follower_username=$1)`;
+      const { rows } = await connection.query(query, [username]);
+      connection.release();
+      rows.forEach((row) => {
+        row.modified =
+          new Date(row.upload_date).getTime() !==
+          new Date(row.update_date).getTime()
+            ? true
+            : false;
+        row.upload_date = formatTime(row.upload_date);
+      });
+      return rows;
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 400,
+      };
+      throw error;
+    }
+  }
 }
 
 export default new userModel();

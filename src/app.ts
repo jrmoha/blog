@@ -10,6 +10,7 @@ import io from './socket';
 import config from './utils/config';
 import authRouter from './routes/authenticationRouter';
 import postRouter from './routes/postRouter';
+import userRouter from './routes/userRouter';
 import { formatTime, formatUserStatusTime } from './utils/functions';
 import db from './database';
 import userModel from './models/userModel';
@@ -48,6 +49,7 @@ app.use(
 );
 app.use('/', authRouter);
 app.use('/posts', postRouter);
+app.use('/users', userRouter);
 app.get('/trendingHashtags', async (_req: Request, res: Response) => {
   const connection = await db.connect();
   let query = `WITH recent_posts AS (SELECT * FROM post WHERE upload_date > NOW() - INTERVAL '7 days') ,`;

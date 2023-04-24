@@ -57,25 +57,6 @@ $(document).ready(function () {
         changeDays(months[$("#months").val() - 1], $("#years").val());
     });
 
-    //location part
-    // const lookup = async (position) => {
-    //     const { latitude, longitude } = position.coords;
-    //     let result = await fetch(`https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=ddedb13757b141d6a924a1fc275f9f2b`);
-    //     result = await result.json();
-    //     let loc = `${result.results[0].components.state}, ${result.results[0].components.country}`;
-    //     $("input[name=location]").attr('value', loc);
-    // };
-    // function getLocation() {
-    //     if (navigator.geolocation) {
-    //         navigator.geolocation.getCurrentPosition(lookup,notAllowed);
-    //     }
-    // }
-    // function notAllowed(){
-    //     $("input[name=location]").attr('value', "Not Allowed");
-    // }
-    // getLocation();
-
-    //validation part
     $("form[name=registration_form] :input").each(function () {
         $(this).keyup(() => {
             let input_name = this.name;
@@ -126,7 +107,6 @@ $(document).ready(function () {
             const reg_email = $("input[name=reg_email]").val().trim();
             const reg_password = $("input[name=reg_password]").val();
             const reg_confirm_password = $("input[name=reg_confirm_password]").val();
-            const gender = $("select[name=gender]").val();
             const fname_regex = /^[a-zA-z]{1,20}$/g;
             const lname_regex = /^[a-zA-Z]{1,20}([ ]{0,1}?[a-zA-Z]{1,20}?)*$/g;
             const email_reg_regex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*.com$/sg;
@@ -170,17 +150,6 @@ $(document).ready(function () {
                 if (!$("#pass_err1").hasClass('d-none')) {
                     $("#pass_err1").removeClass('d-block')
                     $("#pass_err1").addClass('d-none')
-                }
-            }
-            if (gender === "") {
-                $("#gender_err").removeClass('d-none');
-                $("#gender_err").addClass('d-block');
-                console.log("gender err");
-                count++;
-            } else {
-                if (!$("#gender_err").hasClass('d-none')) {
-                    $("#gender_err").removeClass('d-block');
-                    $("#gender_err").addClass('d-none');
                 }
             }
             if (count > 0) {

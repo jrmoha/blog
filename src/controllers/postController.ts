@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import postModel from '../models/postModel';
-import { getHashtags } from '../utils/functions';
+import { formatTime, getHashtags } from '../utils/functions';
 import Post from '../types/post_type';
 import userModel from '../models/userModel';
 import Comment from '../types/comment_type';
@@ -68,7 +68,7 @@ export const likePost = async (req: Request, res: Response) => {
     const response: boolean = await postModel.likePost(username, post_id);
     if (response) {
       userModel.addActivity(username, 'You Liked A Post');
-      res.json({ message: 'Post Liked' });
+      res.json({ success: true });
     } else {
       res.json({ message: 'Post Not Found' });
     }
@@ -81,7 +81,7 @@ export const unlikePost = async (req: Request, res: Response) => {
     const { username, post_id } = req.body;
     const response: boolean = await postModel.unlikePost(username, post_id);
     if (response) {
-      res.json({ message: 'Post Unliked' });
+      res.json({ success: true });
     } else {
       res.json({ message: 'Post Not Found' });
     }
@@ -99,7 +99,8 @@ export const addComment = async (req: Request, res: Response) => {
     );
     if (response) {
       userModel.addActivity(username, 'You Commented On A Post');
-      res.json(response);
+      response.comment_time = formatTime(response.comment_time);
+      res.json({ response: response, success: true });
     } else {
       res.json({ message: 'Post Not Found' });
     }
