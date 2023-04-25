@@ -17,6 +17,7 @@ const {
   GITHUB_CALLBACK_URL,
   JWT_SECRET,
   MESSAGE_SECRET,
+  TRENDING_NUM,
   // eslint-disable-next-line no-undef
 } = process.env;
 
@@ -30,6 +31,7 @@ export default {
     port: DATABASE_PORT,
   },
   lastseen_timeout: parseInt(LASTSEEN_TIMEOUT as string, 10),
+  trending_num: parseInt(TRENDING_NUM as string, 10),
   google: {
     clientID: GOOGLE_CLIENT_ID,
     clientSecret: GOOGLE_CLIENT_SECRET,

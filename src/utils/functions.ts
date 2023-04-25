@@ -1,5 +1,6 @@
 import bcryptjs from 'bcryptjs';
-
+import postModel from '../models/postModel';
+import userModel from '../models/userModel';
 export const getHashtags = (query: string): string[] => {
   const regex = /\B(#[a-zA-Z0-9_]+\b)(?!;)/gm;
   const hashtags = query.match(regex);
@@ -65,4 +66,22 @@ export const comparePassword = async (
   hashed: string
 ): Promise<boolean> => {
   return bcryptjs.compareSync(password, hashed);
+};
+export const addBasicDataToPosts = async (posts: any[]): Promise<void> => {
+  for (const post of posts) {
+    post.images = await postModel.getPostImages(post.post_id);
+    post.likes = await postModel.getLikes(post.post_id);
+    post.likes_number = post.likes.length;
+    post.comments = await postModel.getComments(post.post_id);
+    post.comments_number = post.comments.length;
+    post.user_image = await userModel.getCurrentProfileImage(post.username);
+    post.modified =
+      new Date(post.upload_date).getTime() !==
+      new Date(post.update_date).getTime()
+        ? true
+        : false;
+    post.last_update = formatTime(post.update_date);
+    delete post.upload_date;
+    delete post.update_date;
+  }
 };

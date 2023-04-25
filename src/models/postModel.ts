@@ -3,6 +3,9 @@ import Post from '../types/post_type';
 import Comment from '../types/comment_type';
 import IError from '../interfaces/error';
 import User from '../types/user_type';
+import config from '../utils/config';
+import { addBasicDataToPosts } from '../utils/functions';
+const { trending_num } = config;
 class postModel {
   async getPost(post_id: number): Promise<Post> {
     try {
@@ -76,13 +79,35 @@ class postModel {
       throw error;
     }
   }
+  async deletePostImages(post_id: number): Promise<boolean> {
+    try {
+      const connection = await db.connect();
+      const query = `DELETE FROM post_image WHERE post_id=$1`;
+      await connection.query(query, [post_id]);
+      connection.release();
+      return true;
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status,
+      };
+      throw error;
+    }
+  }
   async deletePost(post_id: number): Promise<boolean> {
     try {
+      Promise.all([
+        this.deleteComments(post_id),
+        this.deleteLikes(post_id),
+        this.deleteHashtags(post_id),
+        this.deleteViews(post_id),
+        this.deletePostImages(post_id),
+      ]);
       const connection = await db.connect();
       const query = `DELETE FROM post WHERE post_id=$1`;
       const { rowCount } = await connection.query(query, [post_id]);
       connection.release();
-      return rowCount == 1;
+      return rowCount === 1;
     } catch (err: any) {
       const error: IError = {
         message: err.message,
@@ -209,15 +234,8 @@ class postModel {
   async checkViewPost(username: string, post_id: number): Promise<boolean> {
     try {
       const connection = await db.connect();
-      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .substring(0, 10);
-      const query = `SELECT * FROM view_post WHERE username=$1 AND post_id=$2 AND view_date>$3`;
-      const result = await connection.query(query, [
-        username,
-        post_id,
-        sevenDaysAgo,
-      ]);
+      const query = `SELECT * FROM view_post WHERE username=$1 AND post_id=$2 AND view_date>=NOW()-INTERVAL '7 days'`;
+      const result = await connection.query(query, [username, post_id]);
       connection.release();
       return result.rows.length > 0;
     } catch (err: any) {
@@ -236,14 +254,8 @@ class postModel {
       let result;
       if (checkResult) {
         query = `UPDATE view_post SET view_date=$1 WHERE username=$2 AND post_id=$3 `;
-        query += `AND view_date IN (SELECT view_date FROM view_post WHERE username=$4 AND post_id=$5 ORDER BY view_date DESC LIMIT 1)`;
-        result = await connection.query(query, [
-          `NOW()`,
-          username,
-          post_id,
-          username,
-          post_id,
-        ]);
+        query += `AND view_date IN (SELECT view_date FROM view_post WHERE username=$2 AND post_id=$3 ORDER BY view_date DESC LIMIT 1)`;
+        result = await connection.query(query, [`NOW()`, username, post_id]);
       } else {
         query = `INSERT INTO view_post (username,post_id) VALUES ($1,$2)`;
         result = await connection.query(query, [username, post_id]);
@@ -383,7 +395,7 @@ class postModel {
       throw error;
     }
   }
-  async getImages(post_id: number): Promise<string[]> {
+  async getPostImages(post_id: number): Promise<string[]> {
     try {
       const connection = await db.connect();
       const query = `SELECT img_src FROM post_images WHERE post_id=$1`;
@@ -405,6 +417,91 @@ class postModel {
       const { rows } = await connection.query(query, [username]);
       connection.release();
       return rows.map((row) => row.post_id);
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 404,
+      };
+      throw error;
+    }
+  }
+  async trendingByViews(): Promise<Post[]> {
+    try {
+      const connection = await db.connect();
+      let query = `SELECT (SELECT COUNT(post_id) FROM view_post WHERE post_id=p.post_id AND view_date>NOW()-INTERVAL '7 days') AS "views",`;
+      query += `p.post_id,p.username,p.post_content,p.upload_date,p.update_date FROM post p `;
+      query += `GROUP BY p.post_id ORDER BY "views" DESC LIMIT $1;`;
+      const { rows } = await connection.query(query, [trending_num]);
+      connection.release();
+      // for (const row of rows) {
+      //   row.images = await this.getPostImages(row.post_id);
+      //   row.likes_number = (await this.getLikes(row.post_id)).length;
+      //   row.comments_number = (await this.getComments(row.post_id)).length;
+      //   row.user_image = await userModel.getCurrentProfileImage(row.username);
+      //   row.modified =
+      //     new Date(row.upload_date).getTime() !==
+      //     new Date(row.update_date).getTime()
+      //       ? true
+      //       : false;
+      //   row.last_update = formatTime(row.update_date);
+      //   delete row.upload_date;
+      //   delete row.update_date;
+      // }
+      await addBasicDataToPosts(rows);
+      return rows;
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 404,
+      };
+      throw error;
+    }
+  }
+  async trendingHashtags(): Promise<Post[]> {
+    try {
+      const connection = await db.connect();
+      let query = `WITH recent_posts AS (SELECT * FROM post WHERE update_date > NOW() - INTERVAL '7 days'),`;
+      query += `tags AS (SELECT tag,COUNT(tag) AS "frequency" FROM post_tags `;
+      query += `WHERE post_id IN (SELECT post_id FROM recent_posts) GROUP BY tag ORDER BY "frequency" DESC) `;
+      query += `SELECT tag,"frequency" FROM tags;`;
+      const { rows } = await connection.query(query);
+      connection.release();
+      return rows;
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 404,
+      };
+      throw error;
+    }
+  }
+  async trendingPostsByHashtags(): Promise<Post[]> {
+    try {
+      const connection = await db.connect();
+      let query = `SELECT p.post_id, p.username,p.post_content,p.upload_date,p.update_date, COUNT(pt.tag) AS tag_count `;
+      query += `FROM post_tags pt `;
+      query += `JOIN post p ON pt.post_id = p.post_id `;
+      query += `WHERE p.update_date >= NOW() - INTERVAL '7 days' `;
+      query += `GROUP BY p.post_id `;
+      query += `ORDER BY tag_count DESC LIMIT $1;`;
+      const { rows } = await connection.query(query, [trending_num]);
+      connection.release();
+      // for (const row of rows) {
+      //   row.images = await this.getPostImages(row.post_id);
+      //   row.likes_number = (await this.getLikes(row.post_id)).length;
+      //   row.comments_number = (await this.getComments(row.post_id)).length;
+      //   row.user_image = await userModel.getCurrentProfileImage(row.username);
+      //   row.modified =
+      //     new Date(row.upload_date).getTime() !==
+      //     new Date(row.update_date).getTime()
+      //       ? true
+      //       : false;
+      //   row.last_update = formatTime(row.update_date);
+      //   delete row.upload_date;
+      //   delete row.update_date;
+      // }
+      await addBasicDataToPosts(rows);
+      return rows;
     } catch (err: any) {
       const error: IError = {
         message: err.message,

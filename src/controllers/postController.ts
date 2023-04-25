@@ -152,10 +152,9 @@ export const viewPost = async (req: Request, res: Response) => {
     const { username, post_id } = req.body;
     const response: boolean = await postModel.viewPost(username, post_id);
     if (response) {
-      res.json({ message: 'Post Viewed' });
-    } else {
-      res.json({ message: 'Already viewed post in last seven days' });
+      return res.json({ success: true });
     }
+    return res.json({ success: false });
   } catch (err: any) {
     res.json({ message: err.message, status: err.status });
   }

@@ -9,6 +9,7 @@ type Post = {
   content: string;
   comments?: Comment[];
   likes?: User[];
+  images?: string[];
 };
 
 export default Post;
