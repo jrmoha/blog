@@ -8,7 +8,7 @@ export const authenticationMiddleware = (
   next: NextFunction
 ) => {
   try {
-    const token = req.cookies.token;
+    const token = req.cookies.jwt;
     if (!token) throw new Error('No token');
     verify(token, config.jwt.secret as string, (err: any, decoded: any) => {
       if (err) throw new Error('Invalid token');

@@ -189,3 +189,14 @@ export const trendingTags = async (_req: Request, res: Response) => {
     res.json({ message: err.message, status: err.status });
   }
 };
+export const getLikes = async (req: Request, res: Response) => {
+  try {
+    const post_id: number = parseInt(req.params.post_id);
+    const username = req?.user;
+    if (!username) throw new Error('Unauthorized');
+    const response = await postModel.getLikes(post_id, username as string);
+    res.json(response);
+  } catch (error: any) {
+    res.json({ message: error.message, status: error.status });
+  }
+};

@@ -101,6 +101,7 @@ $(document).ready(function () {
         }
     });
     $("#regBtn").on('click', function (e) {
+        e.preventDefault();
         if (!disabled) {
             const first_name = $("input[name=first_name]").val().trim();
             const last_name = $("input[name=last_name]").val().trim();
@@ -152,11 +153,9 @@ $(document).ready(function () {
                     $("#pass_err1").addClass('d-none')
                 }
             }
-            if (count > 0) {
-                e.preventDefault();
+            if (count === 0) {
+                e.submit();
             }
-        } else {
-            e.preventDefault();
         }
     });
 

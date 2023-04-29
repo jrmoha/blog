@@ -9,11 +9,11 @@ router.get('/registration', authController.regPageController);
 router.post('/registration', authController.registerController);
 router.get(
   '/auth/google',
-  passport.authenticate('google', { scope: ['email', 'profile'] })
+  passport.authenticate('google', { scope: ['profile','email'] })
 );
 router.get(
   `/auth/google/blog`,
-  passport.authenticate('google', { failureRedirect: '/' }),
+  passport.authenticate('google', { failureRedirect: '/login' }),
   authController.providerLoginController
 );
 router.get(
@@ -22,7 +22,7 @@ router.get(
 );
 router.get(
   `/auth/github/blog`,
-  passport.authenticate('github', { failureRedirect: '/' }),
+  passport.authenticate('github', { failureRedirect: '/login' }),
   authController.providerLoginController
 );
 export default router;

@@ -567,12 +567,15 @@ class userModel {
       );
       connection.release();
       if (search_user_exists_result.rowCount == 0) {
+        const username =
+          profile._json.login ||
+          profile._json.email.split('@')[0] + profile._json.sub.slice(0, 5);
         const user: User = await this.registerUser(
-          profile._json.login,
+          username,
           `${profile.id}${profile._json.email}`,
           profile._json.email,
-          profile._json.name,
-          profile._json.name,
+          profile._json.given_name || profile._json.name,
+          profile._json.family_name || profile._json.name,
           `NOW()`
         );
         const insert_provider: boolean = await this.insertProvider(

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import * as postController from '../controllers/postController';
+import { authenticationMiddleware } from '../middleware/authenticationMiddleware';
 
 const router = Router();
 
@@ -17,5 +18,5 @@ router.put('/editComment', postController.editComment);
 router.post('/viewpost', postController.viewPost);
 router.get('/user/:username', postController.getPostsByUser);
 router.get('/hashtags/:hashtag', postController.getPostsByHashtag);
-
+router.get('/api/likes/:post_id',authenticationMiddleware, postController.getLikes);
 export default router;

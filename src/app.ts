@@ -29,11 +29,11 @@ app.use(
     secret: config.jwt.secret as string,
     resave: false,
     saveUninitialized: true,
-    // cookie: {
-    //   secure: true,
-    //   httpOnly: true,
-    //   maxAge: 1000 * 60 * 60 * 24 * 7,
-    // },
+    cookie: {
+      secure: true,
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+    },
   })
 );
 app.use(bodyParser.urlencoded({ extended: false }));

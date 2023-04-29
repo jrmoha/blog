@@ -3,7 +3,7 @@ import userModel from '../models/userModel';
 import jwt from 'jsonwebtoken';
 import config from '../utils/config';
 import postModel from '../models/postModel';
-export const loginPageController = async (req: Request, res: Response) => {
+export const loginPageController = async (_req: Request, res: Response) => {
   res.render('login');
 };
 export const loginController = async (req: Request, res: Response) => {
@@ -41,6 +41,7 @@ export const loginController = async (req: Request, res: Response) => {
         },
       }
     );
+    req.user = username;
     res.cookie('jwt', token, {
       httpOnly: true,
       secure: true,
@@ -98,6 +99,7 @@ export const registerController = async (req: Request, res: Response) => {
         },
       }
     );
+    req.user = username;
     res.cookie('jwt', token, {
       httpOnly: true,
       secure: true,
@@ -126,6 +128,7 @@ export const providerLoginController = async function (
   req: Request,
   res: Response
 ) {
+  console.log('here');
   const requestUser = req.user as any;
   if (!requestUser) throw new Error('User Not Found');
   console.log(requestUser.user);
@@ -155,6 +158,7 @@ export const providerLoginController = async function (
     },
     config.jwt.secret as string
   );
+  req.user = requestUser.username;
   res.cookie('jwt', token);
   res.send(token);
 };

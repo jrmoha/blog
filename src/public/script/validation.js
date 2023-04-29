@@ -1,6 +1,7 @@
 'use strict'
 $(document).ready(function () {
     $("form[name=login_form]").submit(function (e) {
+        e.preventDefault();
         let email = $("input[name=email_address]").val()
         let password = $("input[name=password]").val()
         var email_regex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*.com$/g
@@ -16,7 +17,8 @@ $(document).ready(function () {
             $("#err").removeClass('d-none');
             $("#err").addClass('d-block')
             $("#err").html(errMsgs.join('\n\n'))
-            e.preventDefault();
+        } else if (errMsgs.length === 0) {
+            e.submit();
         }
     });
     $("input[name=email_address]").change(function () {

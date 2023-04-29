@@ -11,8 +11,6 @@ passport.use(
       clientID: config.google.clientID as string,
       clientSecret: config.google.clientSecret as string,
       callbackURL: config.google.callbackURL as string,
-      scope: ['email', 'profile'],
-      state: true,
     },
     findOrCreateController
   )

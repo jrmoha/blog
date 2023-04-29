@@ -73,10 +73,8 @@ export const comparePassword = async (
 export const addBasicDataToPosts = async (posts: any[]): Promise<void> => {
   for (const post of posts) {
     post.images = await postModel.getPostImages(post.post_id);
-    post.likes = await postModel.getLikes(post.post_id);
-    post.likes_number = post.likes.length;
-    post.comments = await postModel.getComments(post.post_id);
-    post.comments_number = post.comments.length;
+    post.likes_number = await postModel.getPostLikesNumber(post.post_id);
+    post.comments_number = await postModel.getPostCommentsNumber(post.post_id);
     post.user_image = await userModel.getCurrentProfileImage(post.username);
     post.modified =
       new Date(post.upload_date).getTime() !==

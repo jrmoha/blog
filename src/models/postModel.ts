@@ -345,11 +345,14 @@ class postModel {
       throw error;
     }
   }
-  async getLikes(post_id: number): Promise<User[]> {
+  async getLikes(post_id: number, username: string): Promise<User[]> {
     try {
       const connection = await db.connect();
-      const query = `SELECT username FROM post_like WHERE post_id=$1`;
-      const { rows } = await connection.query(query, [post_id]);
+      let query = `SELECT p.username,`;
+      query += `(SELECT MAX(img_src) AS "image" FROM user_image WHERE username=p.username ),`;
+      query += `(SELECT follow_status FROM follow WHERE follower_username=$1 AND followed_username=p.username) `;
+      query += `FROM post_like p WHERE p.post_id=$2`;
+      const { rows } = await connection.query(query, [username, post_id]);
       connection.release();
       return rows;
     } catch (err: any) {
@@ -486,26 +489,42 @@ class postModel {
       query += `ORDER BY tag_count DESC LIMIT $1;`;
       const { rows } = await connection.query(query, [trending_num]);
       connection.release();
-      // for (const row of rows) {
-      //   row.images = await this.getPostImages(row.post_id);
-      //   row.likes_number = (await this.getLikes(row.post_id)).length;
-      //   row.comments_number = (await this.getComments(row.post_id)).length;
-      //   row.user_image = await userModel.getCurrentProfileImage(row.username);
-      //   row.modified =
-      //     new Date(row.upload_date).getTime() !==
-      //     new Date(row.update_date).getTime()
-      //       ? true
-      //       : false;
-      //   row.last_update = formatTime(row.update_date);
-      //   delete row.upload_date;
-      //   delete row.update_date;
-      // }
       await addBasicDataToPosts(rows);
       return rows;
     } catch (err: any) {
       const error: IError = {
         message: err.message,
         status: err.status || 404,
+      };
+      throw error;
+    }
+  }
+  async getPostLikesNumber(post_id: number): Promise<number> {
+    try {
+      const connection = await db.connect();
+      const query = `SELECT COUNT(username) FROM post_like WHERE post_id=$1`;
+      const { rows } = await connection.query(query, [post_id]);
+      connection.release();
+      return parseInt(rows[0].count);
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 500,
+      };
+      throw error;
+    }
+  }
+  async getPostCommentsNumber(post_id: number): Promise<number> {
+    try {
+      const connection = await db.connect();
+      const query = `SELECT COUNT(comment_id) FROM comment WHERE post_id=$1`;
+      const { rows } = await connection.query(query, [post_id]);
+      connection.release();
+      return parseInt(rows[0].count);
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 500,
       };
       throw error;
     }
