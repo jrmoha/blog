@@ -13,7 +13,7 @@ export const getFeed = async (req: Request, res: Response) => {
 };
 export const friends = async (req: Request, res: Response) => {
   try {
-    const username: any = req?.user ;
+    const username: any = req?.user;
     if (!username) throw new Error('No username');
     const friends: any = await userModel.friendsStatus(username);
     res.json(friends);
@@ -26,7 +26,7 @@ export const updateProfilePictureController = async (
   res: Response
 ) => {
   try {
-    const username = req?.user ;
+    const username = req?.user;
     if (!username) throw new Error('No username');
     if (req?.file) {
       const response = await userModel.insertProfileImage(
@@ -43,8 +43,7 @@ export const updateProfilePictureController = async (
       throw new Error('No File Uploaded');
     }
   } catch (error) {
-    console.log('errorrrr');
-    console.log(error);
     res.status(500).json(error);
   }
 };
+

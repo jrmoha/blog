@@ -1,15 +1,21 @@
 import { Router } from 'express';
 import * as authController from '../controllers/authenticationController';
 import passport from '../passport';
+import { authenticationMiddleware } from '../middleware/authenticationMiddleware';
 
 const router = Router();
 router.get('/login', authController.loginPageController);
 router.post('/login', authController.loginController);
 router.get('/registration', authController.regPageController);
 router.post('/registration', authController.registerController);
+router.put(
+  '/api/users/updateSession',
+  authenticationMiddleware,
+  authController.updateSessionController
+);
 router.get(
   '/auth/google',
-  passport.authenticate('google', { scope: ['profile','email'] })
+  passport.authenticate('google', { scope: ['profile', 'email'] })
 );
 router.get(
   `/auth/google/blog`,

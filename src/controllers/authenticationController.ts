@@ -162,3 +162,17 @@ export const providerLoginController = async function (
   res.cookie('jwt', token);
   res.send(token);
 };
+export const updateSessionController = async (req: Request, res: Response) => {
+  try {
+    if (req.session.id) {
+      const response = await userModel.updateSessionTime(req.session.id);
+      res.json({
+        success: response,
+      });
+    } else {
+      throw new Error('No session');
+    }
+  } catch (error) {
+    res.status(500).json(error);
+  }
+};

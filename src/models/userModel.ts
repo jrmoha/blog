@@ -506,7 +506,7 @@ class userModel {
       const connection: PoolClient = await db.connect();
       const query = `UPDATE users SET update_time=$1 WHERE session_id=$2`;
       const { rowCount } = await connection.query(query, [
-        new Date().getTime(),
+        'NOW()',
         session_id,
       ]);
       connection.release();
