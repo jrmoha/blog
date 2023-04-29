@@ -181,3 +181,11 @@ export const searchForAPost = async (req: Request, res: Response) => {
     res.json({ message: err.message, status: err.status });
   }
 };
+export const trendingTags = async (_req: Request, res: Response) => {
+  try {
+    const response = await postModel.trendingHashtags();
+    res.json(response);
+  } catch (err: any) {
+    res.json({ message: err.message, status: err.status });
+  }
+};

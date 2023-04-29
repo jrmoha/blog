@@ -1,6 +1,9 @@
 import bcryptjs from 'bcryptjs';
+import CryptoJS from 'crypto-js';
 import postModel from '../models/postModel';
 import userModel from '../models/userModel';
+import config from './config';
+const message_secret = config.message.secret as string;
 export const getHashtags = (query: string): string[] => {
   const regex = /\B(#[a-zA-Z0-9_]+\b)(?!;)/gm;
   const hashtags = query.match(regex);
@@ -84,4 +87,15 @@ export const addBasicDataToPosts = async (posts: any[]): Promise<void> => {
     delete post.upload_date;
     delete post.update_date;
   }
+};
+export const encryptMessage = (message: string): string => {
+  const encryptedMessage = CryptoJS.AES.encrypt(message, message_secret);
+  return encryptedMessage.toString();
+};
+export const decryptMessage = (encryptedMessage: string): string => {
+  const decryptedMessage = CryptoJS.AES.decrypt(
+    encryptedMessage,
+    message_secret
+  );
+  return decryptedMessage.toString(CryptoJS.enc.Utf8);
 };

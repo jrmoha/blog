@@ -2,25 +2,22 @@ import { Request, Response, NextFunction } from 'express';
 import { verify } from 'jsonwebtoken';
 import config from '../utils/config';
 
-export const authenticationMiddleware = async (
+export const authenticationMiddleware = (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const token = req.cookies.token;
-    if (!token) {
-      return res.status(401).redirect('/login');
-    }
+    if (!token) throw new Error('No token');
     verify(token, config.jwt.secret as string, (err: any, decoded: any) => {
-      if (err) {
-        return res.status(401).render('404', { title: '404', error: err });
-      }
-      console.log(decoded);
+      if (err) throw new Error('Invalid token');
+      req.user = decoded.user.username;
       res.locals.user = decoded;
       next();
     });
   } catch (error) {
-    return res.status(401).redirect('/login');
+    console.log('error in authenticationMiddleware');
+    console.log(error);
   }
 };

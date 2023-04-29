@@ -53,7 +53,7 @@ export const loginController = async (req: Request, res: Response) => {
     res.render('login', { error_msg: err.message });
   }
 };
-export const regPageController = async (req: Request, res: Response) => {
+export const regPageController = async (_req: Request, res: Response) => {
   res.render('registration');
 };
 export const registerController = async (req: Request, res: Response) => {
@@ -126,28 +126,28 @@ export const providerLoginController = async function (
   req: Request,
   res: Response
 ) {
-  const user = req.user as any;
-  if (!user) throw new Error('User Not Found');
-  console.log(user.user);
+  const requestUser = req.user as any;
+  if (!requestUser) throw new Error('User Not Found');
+  console.log(requestUser.user);
   Promise.all([
     userModel.insertSession(
       req.session.id,
-      user.username,
+      requestUser.username,
       req.socket.remoteAddress as string
     ),
     userModel.addActivity(
-      user.username,
-      `You Logged In Using ${user.provider}`
+      requestUser.username,
+      `You Logged In Using ${requestUser.provider}`
     ),
   ]);
   const info_result = await Promise.all([
-    userModel.getCurrentProfileImage(user.username),
-    userModel.getOptions(user.username),
-    postModel.getUserLikedPostsAsArray(user.username),
+    userModel.getCurrentProfileImage(requestUser.username),
+    userModel.getOptions(requestUser.username),
+    postModel.getUserLikedPostsAsArray(requestUser.username),
   ]);
   const token = jwt.sign(
     {
-      user: user.user,
+      user: requestUser.user,
       session: req.session.id,
       profile_image: info_result[0],
       options: info_result[1],

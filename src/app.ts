@@ -14,6 +14,7 @@ import userRouter from './routes/userRouter';
 import userModel from './models/userModel';
 import errorMiddleware from './middleware/errorMiddleware';
 import postModel from './models/postModel';
+import { authenticationMiddleware } from './middleware/authenticationMiddleware';
 
 const app: Application = express();
 app.use(express.static(__dirname + '/public'));
@@ -28,15 +29,15 @@ app.use(
     secret: config.jwt.secret as string,
     resave: false,
     saveUninitialized: true,
-    cookie: {
-      secure: true,
-      httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24 * 7,
-    },
+    // cookie: {
+    //   secure: true,
+    //   httpOnly: true,
+    //   maxAge: 1000 * 60 * 60 * 24 * 7,
+    // },
   })
 );
-app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(helmet());
 app.use(morgan('combined'));
@@ -56,10 +57,20 @@ app.get('/views', async (_req: Request, res: Response) => {
     res.json(error);
   }
 });
-app.get('/trendingHashtags', async (_req: Request, res: Response) => {
-  const rows = await postModel.trendingHashtags();
-  res.json(rows);
-});
+app.get(
+  '/api/hehe/trendingHashtags',
+  authenticationMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      const username: any = req?.user;
+      if (!username) throw new Error('No username');
+      const friends: any = await userModel.friendsStatus(username);
+      res.json(friends);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+);
 app.get('/trendingPosts', async (_req: Request, res: Response) => {
   const rows = await postModel.trendingPostsByHashtags();
   res.json(rows);

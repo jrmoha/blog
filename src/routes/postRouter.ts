@@ -7,6 +7,7 @@ router.post('/create', postController.createPost);
 router.put('/edit', postController.editPost);
 router.delete('/delete', postController.deletePost);
 router.get('/search', postController.searchForAPost);
+router.get('/trendingtags', postController.trendingTags);
 router.get('/:post_id', postController.getPost);
 router.post('/like', postController.likePost);
 router.delete('/unlike', postController.unlikePost);

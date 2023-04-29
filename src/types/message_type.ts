@@ -4,6 +4,7 @@ type Message = {
   sender: string;
   receiver: string;
   message: string;
-  created_at: string;
+  sent_at: string;
+  sender_image?: string;
 };
 export default Message;
