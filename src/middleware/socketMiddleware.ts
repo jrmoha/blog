@@ -7,7 +7,9 @@ export const socketAuthenticationMiddleware = async (
 ) => {
   try {
     // const token = socket.handshake.query.token;
-    const token = socket.request.headers.cookie?.split('=')[2];
+    const token =
+      socket.request.headers.cookie?.split('=')[2] ||
+      socket.request.headers.cookie?.split('=')[1];
     if (!token) {
       return next(new Error('No token provided'));
     }

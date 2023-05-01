@@ -23,11 +23,13 @@ export default function (server: http.Server): Server {
     socketAuthenticationMiddleware(socket, next);
   });
   io.on('connection', (socket) => {
+    console.log(`socket connected ${socket.id}`);
+
     console.log('decoded socket');
     console.log(socket.decoded);
-    // socket.on('join', (username): void => {
-    socket.join(socket.decoded?.username as string);
-    // });
+    socket.on('join', (): void => {
+      socket.join(socket.decoded?.username as string);
+    });
     socket.on('send-message', async (message) => {
       const current_user = socket.decoded?.username as string;
       const receiver = message.receiver;

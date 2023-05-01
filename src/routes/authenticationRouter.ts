@@ -4,10 +4,11 @@ import passport from '../passport';
 import { authenticationMiddleware } from '../middleware/authenticationMiddleware';
 
 const router = Router();
-router.get('/login', authController.loginPageController);
+router.get('/login',authenticationMiddleware, authController.loginPageController);
 router.post('/login', authController.loginController);
-router.get('/registration', authController.regPageController);
+router.get('/registration',authenticationMiddleware, authController.regPageController);
 router.post('/registration', authController.registerController);
+router.get('/logout', authController.logoutController);
 router.put(
   '/api/users/updateSession',
   authenticationMiddleware,

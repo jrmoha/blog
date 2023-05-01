@@ -62,6 +62,10 @@ router.delete('/deleteComment', postController.deleteComment);
 router.put('/editComment', postController.editComment);
 router.post('/viewpost', postController.viewPost);
 router.get('/user/:username', postController.getPostsByUser);
-router.get('/hashtags/:hashtag', postController.getPostsByHashtag);
+router.get(
+  '/hashtags/:hashtag',
+  authenticationMiddleware,
+  postController.getPostsByHashtag
+);
 
 export default router;

@@ -3,6 +3,7 @@ import CryptoJS from 'crypto-js';
 import postModel from '../models/postModel';
 import userModel from '../models/userModel';
 import config from './config';
+import Post from '../types/post_type';
 const message_secret = config.message.secret as string;
 export const getHashtags = (query: string): string[] => {
   const regex = /\B(#[a-zA-Z0-9_]+\b)(?!;)/gm;
@@ -70,7 +71,7 @@ export const comparePassword = async (
 ): Promise<boolean> => {
   return bcryptjs.compareSync(password, hashed);
 };
-export const addBasicDataToPosts = async (posts: any[]): Promise<void> => {
+export const addBasicDataToPosts = async (posts: Post[]): Promise<void> => {
   for (const post of posts) {
     const all = await Promise.all([
       postModel.getPostImages(post.post_id),
@@ -84,11 +85,11 @@ export const addBasicDataToPosts = async (posts: any[]): Promise<void> => {
     post.comments_number = all[2];
     post.user_image = all[3];
     post.modified =
-      new Date(post.upload_date).getTime() !==
-      new Date(post.update_date).getTime()
+      new Date(post.upload_date as string).getTime() !==
+      new Date(post.update_date as string).getTime()
         ? true
         : false;
-    post.last_update = formatTime(post.update_date);
+    post.last_update = formatTime(post.update_date as string);
     delete post.upload_date;
     delete post.update_date;
   }

@@ -8,8 +8,14 @@ type Post = {
   update_date?: string;
   content: string;
   comments?: Comment[];
+  comments_number?: number;
   likes?: User[];
-  image?: string|undefined;
+  likes_number?: number;
+  images?: string[]|undefined;
+  single_image?: string;
+  user_image?: string;
+  modified?: boolean;
+  last_update?: string;
 };
 
 export default Post;

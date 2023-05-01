@@ -1,7 +1,7 @@
 'use strict';
 //to be deleted
 const socket = io("http://localhost:3000");
-
+socket.emit("join");
 socket.emit('load-inbox');
 socket.on("inbox", (current_user, inboxes) => {
     document.querySelector(".chats").innerHTML = "";
@@ -129,6 +129,6 @@ socket.on("new-message", (message) => {
     socket.emit("load-inbox");
 });
 
-document.addEventListener("beforeunload unload", function () {
-    socket.emit("disconnect");
-});
+// document.addEventListener("beforeunload unload", function () {
+//     socket.emit("disconnect");
+// });

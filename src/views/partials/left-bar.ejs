@@ -12,14 +12,14 @@
     </div>
     <div class="rowmenu">
         <ul>
-            <li><a href="index.html" id="rowmenu-selected"><i class="fa fa-globe"></i>Newsfeed</a></li>
+            <li><a href="/" id="rowmenu-selected"><i class="fa fa-globe"></i>Newsfeed</a></li>
             <li><a href="profile.html"><i class="fa fa-user"></i>Profile</a></li>
-            <li><a href="friends.html"><i class="fa fa-users"></i>Friends</a></li>
+            <!-- <li><a href="friends.html"><i class="fa fa-users"></i>Friends</a></li> -->
             <li class="primarymenu"><i class="fa fa-compass"></i>Explore</li>
             <ul>
                 <li style="border:none"><a href="#A">Activity</a></li>
-                <li style="border:none"><a href="#">Followers (10) </a></li>
-                <li style="border:none"><a href="#">Followings (200)</a></li>
+                <li style="border:none"><a href="/users/<%=user.user.username%>/followers">Followers</a></li>
+                <li style="border:none"><a href="/users/<%=user.user.username%>/followings">Followings</a></li>
                 <li style="border:none"><a href="#">History</a></li>
                 <li style="border:none"><a href="#">Saved Posts</a></li>
             </ul>

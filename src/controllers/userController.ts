@@ -3,7 +3,8 @@ import { Request, Response } from 'express';
 import Post from '../types/post_type';
 import postModel from '../models/postModel';
 import User from '../types/user_type';
-
+import jwt from 'jsonwebtoken';
+import config from '../utils/config';
 export const getFeed = async (req: Request, res: Response) => {
   try {
     const username = req?.user;
@@ -11,7 +12,11 @@ export const getFeed = async (req: Request, res: Response) => {
     const liked_posts: number[] = await postModel.getUserLikedPostsAsArray(
       username as string
     );
-    res.render('feed', { posts: posts, liked_posts: liked_posts });
+    res.render('feed', {
+      posts: posts,
+      liked_posts: liked_posts,
+      title: 'Feed',
+    });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
@@ -40,7 +45,15 @@ export const updateProfilePictureController = async (
         username as string,
         req.file.filename
       );
-      console.log(response);
+      const decoded = jwt.verify(
+        req.cookies.jwt,
+        config.jwt.secret as string
+      ) as any;
+      decoded.profile_image = response;
+      const token = jwt.sign(decoded, config.jwt.secret as string);
+      res.cookie('jwt', token, {
+        httpOnly: true,
+      });
       res.json({
         success: true,
         response: { image: response, title: 'Profile Image Updated' },
@@ -76,10 +89,10 @@ export const unfollowController = async (req: Request, res: Response) => {
 export const followersPageController = async (req: Request, res: Response) => {
   try {
     const current_username = req?.user as string;
-    const profile_username = req.params.username;
+    // const profile_username = req.params.username;
     const followers: any[] = await userModel.getFollowers(
-      current_username,
-      profile_username
+      current_username
+      // profile_username
     );
     for (let i = 0; i < followers.length; i++) {
       if (followers[i].follower_username === current_username) {
@@ -88,7 +101,7 @@ export const followersPageController = async (req: Request, res: Response) => {
       }
     }
     console.log(followers);
-    res.render('followers', { followers: followers });
+    res.render('followers', { followers: followers, title: 'Followers' });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
@@ -106,14 +119,14 @@ export const deleteFollowerController = async (req: Request, res: Response) => {
 export const followingsPageController = async (req: Request, res: Response) => {
   try {
     const current_username = req?.user as string;
-    const profile_username = req.params.username;
+    // const profile_username = req.params.username;
     const followings: User[] = await userModel.getFollowings(
-      current_username,
-      profile_username
+      current_username
+      // profile_username
     );
     console.log(followings);
 
-    res.render('followings', { followings: followings });
+    res.render('followings', { followings: followings, title: 'Followings' });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }

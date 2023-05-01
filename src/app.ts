@@ -16,6 +16,8 @@ import errorMiddleware from './middleware/errorMiddleware';
 const app: Application = express();
 app.use(express.static(__dirname + '/public'));
 app.use('/users/:username', express.static(__dirname + '/public'));
+app.use('/posts/hashtags/:hashtag', express.static(__dirname + '/public'));
+
 app.set('view engine', 'ejs');
 app.set('views', 'src/views');
 const httpServer = http.createServer(app);

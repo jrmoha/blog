@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import config from '../utils/config';
 import postModel from '../models/postModel';
 export const loginPageController = async (req: Request, res: Response) => {
-  res.render('login');
+  req.user ? res.redirect('/') : res.render('login');
 };
 export const loginController = async (req: Request, res: Response) => {
   try {
@@ -48,14 +48,14 @@ export const loginController = async (req: Request, res: Response) => {
       sameSite: 'none',
       maxAge: 1000 * 60 * 60 * 24 * 7,
     });
-    res.json({ success: true, token: token });
+    res.redirect('/');
   } catch (err: any) {
     console.log(err);
     res.render('login', { error_msg: err.message });
   }
 };
-export const regPageController = async (_req: Request, res: Response) => {
-  res.render('registration');
+export const regPageController = async (req: Request, res: Response) => {
+  req.user ? res.redirect('/') : res.render('registration');
 };
 export const registerController = async (req: Request, res: Response) => {
   try {
@@ -120,9 +120,21 @@ export const registerController = async (req: Request, res: Response) => {
       sameSite: 'none',
       maxAge: 1000 * 60 * 60 * 24 * 7,
     });
-    res.json(token);
+    res.redirect('/');
   } catch (err: any) {
     res.render('registration', { reg_err: err.message });
+  }
+};
+export const logoutController = async (req: Request, res: Response) => {
+  try {
+    res.clearCookie('jwt');
+    req.session.destroy((err) => {
+      if (err) throw err;
+    });
+    res.locals = {};
+    res.redirect('/login');
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
   }
 };
 export const findOrCreateController = async function verify(

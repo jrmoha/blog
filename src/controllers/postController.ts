@@ -1,6 +1,10 @@
 import { Express, Request, Response } from 'express';
 import postModel from '../models/postModel';
-import { formatTime, getHashtags } from '../utils/functions';
+import {
+  addBasicDataToPosts,
+  formatTime,
+  getHashtags,
+} from '../utils/functions';
 import Post from '../types/post_type';
 import userModel from '../models/userModel';
 import Comment from '../types/comment_type';
@@ -18,7 +22,7 @@ export const createPost = async (req: Request, res: Response) => {
       userModel.addActivity(username, 'You Created A Post'),
     ]);
     if (img_response) {
-      response.image = img_response as string;
+      response.single_image = img_response as string;
     }
     console.log(response);
     res.json({ response: response, success: true });
@@ -171,9 +175,17 @@ export const viewPost = async (req: Request, res: Response) => {
 };
 export const getPostsByHashtag = async (req: Request, res: Response) => {
   try {
+    const usernmae: string = req?.user as string;
     const hashtag: string = req.params.hashtag;
     const response: Post[] = await postModel.getPostsByHashtag(hashtag);
-    res.json(response);
+    const liked_posts: number[] = await postModel.getUserLikedPostsAsArray(
+      usernmae
+    );
+    await addBasicDataToPosts(response);
+    res.locals.posts = response;
+    res.locals.liked_posts = liked_posts;
+    res.locals.title = `#${hashtag}`;
+    res.render('feed');
   } catch (err: any) {
     res.json({ message: err.message, status: err.status });
   }
