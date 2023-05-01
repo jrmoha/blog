@@ -6,7 +6,8 @@ export const socketAuthenticationMiddleware = async (
   next: any
 ) => {
   try {
-    const token = socket.handshake.query.token;
+    // const token = socket.handshake.query.token;
+    const token = socket.request.headers.cookie?.split('=')[2];
     if (!token) {
       return next(new Error('No token provided'));
     }
@@ -17,6 +18,8 @@ export const socketAuthenticationMiddleware = async (
         if (err) {
           return next(new Error('Invalid token'));
         }
+        const profile_image = decoded.profile_image;
+        decoded.user = { ...decoded.user, profile_image, token };
         socket.decoded = decoded.user;
         next();
       }

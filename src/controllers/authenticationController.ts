@@ -3,13 +3,13 @@ import userModel from '../models/userModel';
 import jwt from 'jsonwebtoken';
 import config from '../utils/config';
 import postModel from '../models/postModel';
-export const loginPageController = async (_req: Request, res: Response) => {
+export const loginPageController = async (req: Request, res: Response) => {
   res.render('login');
 };
 export const loginController = async (req: Request, res: Response) => {
   try {
     const { username, password } = req.body;
-    console.log(username, password);
+    res.locals.username = username;
     const response = await userModel.authenticateUser(username, password);
     Promise.allSettled([
       userModel.insertSession(
@@ -48,7 +48,7 @@ export const loginController = async (req: Request, res: Response) => {
       sameSite: 'none',
       maxAge: 1000 * 60 * 60 * 24 * 7,
     });
-    res.json(token);
+    res.json({ success: true, token: token });
   } catch (err: any) {
     console.log(err);
     res.render('login', { error_msg: err.message });
@@ -59,15 +59,29 @@ export const regPageController = async (_req: Request, res: Response) => {
 };
 export const registerController = async (req: Request, res: Response) => {
   try {
-    const { username, password, email, first_name, last_name, birth_date } =
-      req.body;
-    const response = await userModel.registerUser(
+    const {
       username,
-      password,
-      email,
+      reg_password,
+      reg_email,
       first_name,
       last_name,
-      birth_date
+      year,
+      month,
+      day,
+    } = req.body;
+
+    res.locals.username = username;
+    res.locals.email = reg_email;
+    res.locals.first_name = first_name;
+    res.locals.last_name = last_name;
+
+    const response = await userModel.registerUser(
+      username,
+      reg_password,
+      reg_email,
+      first_name,
+      last_name,
+      `${year}-${month}-${day}`
     );
     Promise.allSettled([
       userModel.addActivity(username, 'You Created This Account.'),
@@ -106,9 +120,9 @@ export const registerController = async (req: Request, res: Response) => {
       sameSite: 'none',
       maxAge: 1000 * 60 * 60 * 24 * 7,
     });
-    res.json(response);
+    res.json(token);
   } catch (err: any) {
-    res.json({ message: err.message, status: err.status });
+    res.render('registration', { reg_err: err.message });
   }
 };
 export const findOrCreateController = async function verify(
@@ -128,39 +142,44 @@ export const providerLoginController = async function (
   req: Request,
   res: Response
 ) {
-  console.log('here');
-  const requestUser = req.user as any;
-  if (!requestUser) throw new Error('User Not Found');
-  console.log(requestUser.user);
-  Promise.all([
-    userModel.insertSession(
-      req.session.id,
-      requestUser.username,
-      req.socket.remoteAddress as string
-    ),
-    userModel.addActivity(
-      requestUser.username,
-      `You Logged In Using ${requestUser.provider}`
-    ),
-  ]);
-  const info_result = await Promise.all([
-    userModel.getCurrentProfileImage(requestUser.username),
-    userModel.getOptions(requestUser.username),
-    postModel.getUserLikedPostsAsArray(requestUser.username),
-  ]);
-  const token = jwt.sign(
-    {
-      user: requestUser.user,
-      session: req.session.id,
-      profile_image: info_result[0],
-      options: info_result[1],
-      liked_posts: info_result[2],
-    },
-    config.jwt.secret as string
-  );
-  req.user = requestUser.username;
-  res.cookie('jwt', token);
-  res.send(token);
+  try {
+    const requestUser = req.user as any;
+    if (!requestUser) throw new Error('User Not Found');
+    console.log(`requestUser.user = ${requestUser.user}`);
+    Promise.all([
+      userModel.insertSession(
+        req.session.id,
+        requestUser.username,
+        req.socket.remoteAddress as string
+      ),
+      userModel.addActivity(
+        requestUser.username,
+        `You Logged In Using ${requestUser.provider}`
+      ),
+    ]);
+    const info_result = await Promise.all([
+      userModel.getCurrentProfileImage(requestUser.username),
+      userModel.getOptions(requestUser.username),
+      postModel.getUserLikedPostsAsArray(requestUser.username),
+    ]);
+    const token = jwt.sign(
+      {
+        user: requestUser.user,
+        session: req.session.id,
+        profile_image: info_result[0],
+        options: info_result[1],
+        liked_posts: info_result[2],
+      },
+      config.jwt.secret as string
+    );
+    req.user = requestUser.username;
+    res.cookie('jwt', token);
+    res.status(200).json(token);
+  } catch (err: any) {
+    console.log(`err = ${err}`);
+    res.locals.error_msg = err.message;
+    res.redirect('/login');
+  }
 };
 export const updateSessionController = async (req: Request, res: Response) => {
   try {

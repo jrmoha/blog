@@ -6,6 +6,8 @@ type User = {
   last_name: string;
   birth_date: Date;
   register_date?: Date;
+  profile_image?: string;
+  token?: string;
 };
 
 export default User;

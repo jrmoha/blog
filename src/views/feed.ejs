@@ -1,0 +1,77 @@
+<%- include('partials/header') %>
+    <%- include('partials/navbar') %>
+        <div class="all">
+            <%- include('partials/left-bar')%>
+                <div class="right_row">
+                    <%- include('partials/post_area') %>
+                        <!-- post -->
+                        <% posts.forEach((post)=>{ %>
+                            <div class="row border-radius">
+                                <div class="feed">
+                                    <div class="feed_title">
+                                        <a href="/users/<%=post.username%>">
+                                            <img src="images/users/<%=post.user_image%>" alt="" /></a>
+                                        <span><b>
+                                                <%=post.username%>
+                                            </b> Shared a <a href="/post/<%=post.post_id%>">Post<br>
+                                                <p style="color: #515365;">
+                                                    <%=post.last_update%>
+                                                        <% if (post.modified) { %>
+                                                            <small>modified</small>
+                                                            <% } %>
+                                                </p>
+                                            </a>
+                                        </span>
+                                    </div>
+                                    <div class="feed_content">
+                                        <p>
+                                            <%=post.post_content%>
+                                        </p>
+                                        <% if (post.images.length){%>
+                                            <div class="feed_content_image">
+                                                <a href="/post/<%=post.post_id%>"><img
+                                                        src="images/posts/<%=post.single_image.img_src%>" alt="" /></a>
+                                            </div>
+                                            <%}%>
+
+                                    </div>
+                                    <div class="feed_footer">
+                                        <ul class="feed_footer_left">
+                                            <% if (liked_posts.includes(post.post_id)) { %>
+
+                                                <i class="fa-solid fa-thumbs-up unlike-buttons"
+                                                    data-postId=<%=post.post_id%>></i>
+                                                <% }else{ %>
+                                                    <i class="fa-regular fa-thumbs-up like-buttons"
+                                                        data-postId=<%=post.post_id%>></i>
+                                                    <%}%>
+
+                                                        <li class="hover-orange selected-orange"
+                                                            id="likes-count-<%=post.likes_number%>">
+                                                            <%=post.likes_number%>
+                                                        </li>
+                                        </ul>
+                                        <ul class="feed_footer_right">
+                                            <li>
+                                            <li class="hover-orange selected-orange">
+                                                <a href="/post/<%=post.post_id%>" style="color:#515365;">
+                                            <li class="hover-orange"><i class="fa fa-comments-o"></i>
+                                                <%=post.comments_number%> comments
+                                            </li>
+                                            </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <% }) %>
+                </div>
+                <div class="suggestions_row">
+                    <%- include('partials/friends-bar')%>
+                        <%- include('partials/tags-bar')%>
+                </div>
+        </div>
+        <div class="chat-popup"></div>
+        <button id="myBtn" title="Go to top"><i class="fa fa-arrow-up"></i></button>
+        <%- include('partials/modals')%>
+            <%- include('partials/footer') %>

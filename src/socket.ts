@@ -23,74 +23,82 @@ export default function (server: http.Server): Server {
     socketAuthenticationMiddleware(socket, next);
   });
   io.on('connection', (socket) => {
-    socket.on('join', (username): void => {
-      socket.join(username);
-    });
+    console.log('decoded socket');
+    console.log(socket.decoded);
+    // socket.on('join', (username): void => {
+    socket.join(socket.decoded?.username as string);
+    // });
     socket.on('send-message', async (message) => {
-      const sender = message.sender;
+      const current_user = socket.decoded?.username as string;
       const receiver = message.receiver;
       const encryptedMessage = encryptMessage(message.message);
       const inboxId = message.inboxId;
       const result: Message = await chatModel.sendMessage(
         inboxId,
-        sender,
+        current_user,
         receiver,
         encryptedMessage
       );
       result.message = decryptMessage(result.message);
       result.sent_at = formatTime(result.sent_at);
-      result.sender_image = await userModel.getCurrentProfileImage(sender);
+      result.sender_image = socket.decoded?.profile_image as string;
       socket.to(receiver).emit('new-message', result);
     });
-    socket.on('load-inbox', async (username) => {
-      const result: Inbox[] = await chatModel.getUserInbox(username);
+    socket.on('load-inbox', async () => {
+      const current_username = socket.decoded?.username as string;
+      const result: Inbox[] = await chatModel.getUserInbox(current_username);
       for (let i = 0; i < result.length; i++) {
         const inbox = result[i];
         inbox.last_message = decryptMessage(inbox.last_message as string);
         inbox.last_message_time = formatTime(inbox.last_message_time as string);
         inbox.sender_image = await userModel.getCurrentProfileImage(
-          inbox.username1 === username ? inbox.username2 : inbox.username1
+          inbox.username1 === current_username
+            ? inbox.username2
+            : inbox.username1
         );
       }
-      socket.emit('inbox', result);
+      console.log(current_username);
+
+      socket.emit('inbox', socket.decoded?.username, result);
     });
-    socket.on(
-      'load-messages',
-      async (inboxId = undefined, sender, username) => {
-        try {
-          if (!inboxId) {
-            const find_inbox = await chatModel.findInbox(sender, username);
-            if (!find_inbox) {
-              const new_inbox = await chatModel.createInbox(
-                sender,
-                username,
-                ''
-              );
-              inboxId = new_inbox.inbox_id;
-            } else {
-              inboxId = find_inbox.inbox_id;
-            }
+    socket.on('load-messages', async (inboxId = undefined, username) => {
+      try {
+        const current_user = socket.decoded?.username as string;
+        if (!inboxId) {
+          const find_inbox = await chatModel.findInbox(current_user, username);
+          if (!find_inbox) {
+            const new_inbox = await chatModel.createInbox(
+              current_user,
+              username,
+              ''
+            );
+            inboxId = new_inbox.inbox_id;
+          } else {
+            inboxId = find_inbox.inbox_id;
           }
-          const result: any = await chatModel.getInboxMessages(inboxId);
-          const sender_image = await userModel.getCurrentProfileImage(sender);
-          const receiver_image = await userModel.getCurrentProfileImage(
-            username
-          );
-          for (let i = 0; i < result.length; i++) {
-            result[i].message = decryptMessage(result[i].message);
-            result[i].sent_at = formatTime(result[i].sent_at);
-            result[i].sender_image =
-              result[i].sender === sender ? sender_image : receiver_image;
-            result[i].receiver_image =
-              result[i].sender === sender ? receiver_image : sender_image;
-            delete result[i].inbox_id;
-          }
-          socket.emit('messages', result);
-        } catch (error: any) {
-          socket.emit('error', error.message);
         }
+        const result: any = await chatModel.getInboxMessages(inboxId);
+        const sender_image = await userModel.getCurrentProfileImage(
+          current_user
+        );
+        const receiver_image = await userModel.getCurrentProfileImage(username);
+        for (let i = 0; i < result.length; i++) {
+          result[i].message = decryptMessage(result[i].message);
+          result[i].sent_at = formatTime(result[i].sent_at);
+          result[i].sender_image =
+            result[i].sender === current_user ? sender_image : receiver_image;
+          result[i].receiver_image =
+            result[i].sender === current_user ? receiver_image : sender_image;
+          delete result[i].inbox_id;
+        }
+        socket.emit('messages', current_user, result);
+      } catch (error: any) {
+        socket.emit('error', error.message);
       }
-    );
+    });
+    socket.on('disconnect', () => {
+      socket.disconnect();
+    });
   });
   return io;
 }

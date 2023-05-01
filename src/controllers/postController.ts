@@ -1,19 +1,27 @@
-import { Request, Response } from 'express';
+import { Express, Request, Response } from 'express';
 import postModel from '../models/postModel';
 import { formatTime, getHashtags } from '../utils/functions';
 import Post from '../types/post_type';
 import userModel from '../models/userModel';
 import Comment from '../types/comment_type';
+
 export const createPost = async (req: Request, res: Response) => {
   try {
-    const { username, content } = req.body;
+    const username = req?.user as string;
+    const { content } = req.body;
+    const images = req.files as Express.Multer.File[];
     const response: Post = await postModel.createPost(username, content);
+    const img_response = await postModel.addImages(response.post_id, images);
     const hashTags = getHashtags(content);
     Promise.allSettled([
       postModel.addHashtags(response.post_id, hashTags),
       userModel.addActivity(username, 'You Created A Post'),
     ]);
-    res.json(response);
+    if (img_response) {
+      response.image = img_response as string;
+    }
+    console.log(response);
+    res.json({ response: response, success: true });
   } catch (err: any) {
     res.json({ message: err.message, status: err.status });
   }
@@ -64,7 +72,8 @@ export const getPost = async (req: Request, res: Response) => {
 };
 export const likePost = async (req: Request, res: Response) => {
   try {
-    const { username, post_id } = req.body;
+    const post_id = parseInt(req.params.post_id);
+    const username = req?.user as string;
     const response: boolean = await postModel.likePost(username, post_id);
     if (response) {
       userModel.addActivity(username, 'You Liked A Post');
@@ -78,7 +87,8 @@ export const likePost = async (req: Request, res: Response) => {
 };
 export const unlikePost = async (req: Request, res: Response) => {
   try {
-    const { username, post_id } = req.body;
+    const post_id = parseInt(req.params.post_id);
+    const username = req?.user as string;
     const response: boolean = await postModel.unlikePost(username, post_id);
     if (response) {
       res.json({ success: true });
@@ -195,6 +205,9 @@ export const getLikes = async (req: Request, res: Response) => {
     const username = req?.user;
     if (!username) throw new Error('Unauthorized');
     const response = await postModel.getLikes(post_id, username as string);
+    response.forEach((like: any) => {
+      if (like.username === username) like.follow_status = 0;
+    });
     res.json(response);
   } catch (error: any) {
     res.json({ message: error.message, status: error.status });

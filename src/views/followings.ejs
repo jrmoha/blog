@@ -1,0 +1,30 @@
+<%- include('partials/header') %>
+    <%- include('partials/navbar') %>
+        <div class="all">
+            <%- include('partials/left-bar')%>
+                <div class="right_row" style="width:80%;">
+                    <div class="row border-radius">
+                        <div class="friend">
+                            <% followings.forEach((person)=>{ %>
+                                <div class="friend_title">
+                                    <img src="images/users/<%=person.img_src%>" alt="" />
+                                    <span>
+                                        <a href="/users/<%=person.followed_username%>"><b>
+                                                <%=person.first_name%>
+                                                    <%=person.last_name%>
+                                            </b><br></a>
+                                    </span>
+                                    <% if (person.follow_status==1) { %>
+                                        <button class="delete_follower"
+                                            data-username=<%=person.followed_username%>>Delete</button>
+                                        <% } %>
+                                </div>
+                                <% }) %>
+                        </div>
+                    </div>
+                </div>
+        </div>
+        <div class="chat-popup"></div>
+        <button id="myBtn" title="Go to top"><i class="fa fa-arrow-up"></i></button>
+        <%- include('partials/modals')%>
+            <%- include('partials/footer') %>

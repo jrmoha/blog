@@ -379,17 +379,19 @@ class postModel {
       throw error;
     }
   }
-  async addImages(post_id: number, images: string[]): Promise<boolean> {
+  async addImages(post_id: number, images: any[]): Promise<string | null> {
     try {
+      if (!images.length) return null;
       const connection = await db.connect();
       let query = `INSERT INTO post_images (post_id,img_src) VALUES`;
-      images.forEach((image) => {
-        query += `(${post_id},'${image}'),`;
+      images.forEach((image: any) => {
+        query += `(${post_id},'${image.filename}'),`;
       });
       query = query.substring(0, query.length - 1);
-      const { rowCount } = await connection.query(query);
+      query += ` RETURNING img_src`;
+      const { rows } = await connection.query(query);
       connection.release();
-      return rowCount === images.length;
+      return rows[0].img_src;
     } catch (err: any) {
       const error: IError = {
         message: err.message,
@@ -517,7 +519,7 @@ class postModel {
   async getPostCommentsNumber(post_id: number): Promise<number> {
     try {
       const connection = await db.connect();
-      const query = `SELECT COUNT(comment_id) FROM comment WHERE post_id=$1`;
+      const query = `SELECT COUNT(comment_id) FROM post_comment WHERE post_id=$1`;
       const { rows } = await connection.query(query, [post_id]);
       connection.release();
       return parseInt(rows[0].count);

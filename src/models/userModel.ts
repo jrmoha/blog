@@ -61,7 +61,9 @@ class userModel {
       const connection: PoolClient = await db.connect();
       let query = `INSERT INTO users (username,email,password,first_name,last_name,birth_date) `;
       query += `VALUES ($1,$2,$3,$4,$5,$6) RETURNING username,email,first_name,last_name`;
+      console.log(`hashedPassword: ${password}`);
       const hashedPassword = await hashPassword(password);
+
       const { rows } = await connection.query(query, [
         username,
         email,
@@ -426,11 +428,21 @@ class userModel {
       throw error;
     }
   }
-  async getFollowers(username: string): Promise<User[]> {
+  async getFollowers(
+    current_username: string,
+    profile_username: string
+  ): Promise<User[]> {
     try {
       const connection: PoolClient = await db.connect();
-      const query = `SELECT follower_username FROM follow WHERE followed_username=$1 AND follow_status=1`;
-      const { rows } = await connection.query(query, [username]);
+      let query = `SELECT f.follower_username,u.first_name,u.last_name,`;
+      query += `(SELECT MAX(ui.img_src) AS "img_src" FROM user_image ui WHERE ui.username=f.follower_username),`;
+      query += `(SELECT follow_status FROM follow WHERE follower_username=$1 AND followed_username=f.follower_username) `;
+      query += `FROM follow f JOIN users u ON u.username=f.follower_username `;
+      query += `WHERE f.followed_username=$2 AND f.follow_status=1`;
+      const { rows } = await connection.query(query, [
+        current_username,
+        profile_username,
+      ]);
       connection.release();
       return rows;
     } catch (err: any) {
@@ -441,13 +453,23 @@ class userModel {
       throw error;
     }
   }
-  async getFollowings(username: string): Promise<User[]> {
+  async getFollowings(
+    current_username: string,
+    profile_username: string
+  ): Promise<User[]> {
     try {
       const connection: PoolClient = await db.connect();
-      const query = `SELECT followed_username FROM follow WHERE follower_username=$1 AND follow_status=1`;
-      const { rows } = await connection.query(query, [username]);
+      let query = `SELECT f.followed_username,u.first_name,u.last_name,`;
+      query += `(SELECT MAX(ui.img_src) AS "img_src" FROM user_image ui WHERE ui.username=f.followed_username),`;
+      query += `(SELECT follow_status FROM follow WHERE followed_username=$1 AND follower_username=f.followed_username) `;
+      query += `FROM follow f JOIN users u ON u.username=f.follower_username `;
+      query += `WHERE f.follower_username=$2 AND f.follow_status=1`;
+      const { rows } = await connection.query(query, [
+        current_username,
+        profile_username,
+      ]);
       connection.release();
-      return rows[0];
+      return rows;
     } catch (err: any) {
       const error: IError = {
         message: err.message,
@@ -505,10 +527,7 @@ class userModel {
     try {
       const connection: PoolClient = await db.connect();
       const query = `UPDATE users SET update_time=$1 WHERE session_id=$2`;
-      const { rowCount } = await connection.query(query, [
-        'NOW()',
-        session_id,
-      ]);
+      const { rowCount } = await connection.query(query, ['NOW()', session_id]);
       connection.release();
       return rowCount == 1;
     } catch (err: any) {
@@ -776,23 +795,9 @@ class userModel {
       let query = `SELECT p.post_id,p.username,p.upload_date,p.update_date,p.post_content `;
       query += `FROM post p `;
       query += `WHERE p.username IN `;
-      query += `(SELECT followed_username FROM follow WHERE follower_username=$1)`;
+      query += `(SELECT followed_username FROM follow WHERE follower_username=$1 AND follow_status=1) OR p.username=$1 `;
       const { rows } = await connection.query(query, [username]);
       connection.release();
-      // for (const row of rows) {
-      //   row.images = await postModel.getPostImages(row.post_id);
-      //   row.likes_number = (await postModel.getLikes(row.post_id)).length;
-      //   row.comments_number = (await postModel.getComments(row.post_id)).length;
-      //   row.user_image = await this.getCurrentProfileImage(row.username);
-      //   row.modified =
-      //     new Date(row.upload_date).getTime() !==
-      //     new Date(row.update_date).getTime()
-      //       ? true
-      //       : false;
-      //   row.last_update = formatTime(row.update_date);
-      //   delete row.upload_date;
-      //   delete row.update_date;
-      // }
       await addBasicDataToPosts(rows);
       return rows;
     } catch (err: any) {

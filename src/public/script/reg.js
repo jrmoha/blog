@@ -63,6 +63,9 @@ $(document).ready(function () {
             let input_val = $(`input[name=${input_name}]`).val();
             let regex = null;
             switch (input_name) {
+                case 'username':
+                    regex = /^(?=.{4,30}$)(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]+(?<![_.])$/g;
+                    break;
                 case 'first_name':
                     regex = /^[a-zA-z]{1,20}$/g;
                     break;
@@ -100,19 +103,26 @@ $(document).ready(function () {
             $("#regBtn").prop('disabled', true);
         }
     });
-    $("#regBtn").on('click', function (e) {
+    $("form[name=registration_form]").submit(function (e) {
         e.preventDefault();
         if (!disabled) {
+            const username = $("input[name=username]").val().trim();
             const first_name = $("input[name=first_name]").val().trim();
             const last_name = $("input[name=last_name]").val().trim();
             const reg_email = $("input[name=reg_email]").val().trim();
             const reg_password = $("input[name=reg_password]").val();
             const reg_confirm_password = $("input[name=reg_confirm_password]").val();
+            const username_regex = /^(?=.{4,30}$)(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]+(?<![_.])$/g;
             const fname_regex = /^[a-zA-z]{1,20}$/g;
             const lname_regex = /^[a-zA-Z]{1,20}([ ]{0,1}?[a-zA-Z]{1,20}?)*$/g;
             const email_reg_regex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*.com$/sg;
             const reg_password_regex = /^(?=.*\d)(?=.*[!@#$%^&*])(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
             let count = 0
+            if (!username_regex.test(username)) {
+                $("#username_err").removeClass('d-none');
+                $("#username_err").addClass('d-block');
+                count++;
+            }
             if (!lname_regex.test(last_name) || !fname_regex.test(first_name)) {
                 $("#name_err").removeClass('d-none');
                 $("#name_err").addClass('d-block');
@@ -154,7 +164,7 @@ $(document).ready(function () {
                 }
             }
             if (count === 0) {
-                e.submit();
+                e.target.submit();
             }
         }
     });

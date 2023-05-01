@@ -104,5 +104,9 @@ dist
 .tern-port
 
 google.json
-src/public
-src/views
+src/public/images
+src/public/style
+src/public/webfonts
+src/public/script/all.min.js
+src/public/script/bootstrap.bundle.min.js
+src/public/script/jquery.js
