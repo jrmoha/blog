@@ -3,7 +3,6 @@ $(document).ready(function () {
     const TIME_OUT = 30000;
     let updateSessionLoop = setInterval(async function () {
         try {
-            console.log('yeah science yeah');
             const response = await fetch("http://localhost:3000/api/users/updateSession", {
                 method: "PUT",
                 headers: {
@@ -11,13 +10,13 @@ $(document).ready(function () {
                 },
             });
             const update = await response.json();
-            console.log(update.success);
+            console.log(update);
             if (!update.success) {
                 console.log('not auth');
-                window.location.href = 'http://localhost:3000/login';
+                window.location.href = '/login';
             }
         } catch (err) {
-            console.error(error);
+            console.error(err);
             setTimeout(() => {
                 window.location.reload();
             }, 500);

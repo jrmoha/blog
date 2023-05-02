@@ -92,7 +92,7 @@ export const registerController = async (req: Request, res: Response) => {
       ),
     ]);
     const all_info = await Promise.all([
-      userModel.insertDefaultImage(username),
+      userModel.getCurrentProfileImage(username),
       userModel.initOptions(username),
       postModel.getUserLikedPostsAsArray(username),
     ]);
@@ -186,7 +186,7 @@ export const providerLoginController = async function (
     );
     req.user = requestUser.username;
     res.cookie('jwt', token);
-    res.status(200).json(token);
+    res.redirect('/');
   } catch (err: any) {
     console.log(`err = ${err}`);
     res.locals.error_msg = err.message;
@@ -195,8 +195,11 @@ export const providerLoginController = async function (
 };
 export const updateSessionController = async (req: Request, res: Response) => {
   try {
-    if (req.session.id) {
-      const response = await userModel.updateSessionTime(req.session.id);
+    if (res.locals.user.session) {
+      const response = await userModel.updateSessionTime(
+        res.locals.user.session
+      );
+      console.log(response);
       res.json({
         success: response,
       });

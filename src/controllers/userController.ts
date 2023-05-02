@@ -131,3 +131,43 @@ export const followingsPageController = async (req: Request, res: Response) => {
     res.status(500).json({ message: error.message });
   }
 };
+export const deleteProfilePictureController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const username = req?.user;
+    const image = req.body.image;
+    if (!username) throw new Error('No username');
+    const response = await userModel.deleteUserImage(username as string, image);
+    const decoded = jwt.verify(
+      req.cookies.jwt,
+      config.jwt.secret as string
+    ) as any;
+    decoded.profile_image = response;
+    const token = jwt.sign(decoded, config.jwt.secret as string);
+    res.cookie('jwt', token, {
+      httpOnly: true,
+    });
+    res.json({
+      success: true,
+      response: { image: response, title: 'Profile Image Deleted' },
+    });
+  } catch (error) {
+    res.status(500).json(error);
+  }
+};
+export const photosPageController = async (req: Request, res: Response) => {
+  try {
+    const profile_username = req.params.username;
+    const photos = await userModel.getUserImages(profile_username);
+    if (req.user === profile_username) {
+      res.locals.isOwner = true;
+    } else {
+      res.locals.isOwner = false;
+    }
+    res.render('photos', { photos: photos, title: profile_username });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};

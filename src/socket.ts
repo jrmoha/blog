@@ -80,9 +80,10 @@ export default function (server: http.Server): Server {
           }
         }
         const result: any = await chatModel.getInboxMessages(inboxId);
-        const sender_image = await userModel.getCurrentProfileImage(
-          current_user
-        );
+        // const sender_image = await userModel.getCurrentProfileImage(
+        //   current_user
+        // );
+        const sender_image = socket.decoded?.profile_image as string;
         const receiver_image = await userModel.getCurrentProfileImage(username);
         for (let i = 0; i < result.length; i++) {
           result[i].message = decryptMessage(result[i].message);

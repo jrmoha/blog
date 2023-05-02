@@ -454,7 +454,7 @@ class userModel {
     }
   }
   async getFollowings(
-    current_username: string,
+    current_username: string
     // profile_username: string
   ): Promise<User[]> {
     try {
@@ -526,7 +526,7 @@ class userModel {
   async updateSessionTime(session_id: string): Promise<boolean> {
     try {
       const connection: PoolClient = await db.connect();
-      const query = `UPDATE users SET update_time=$1 WHERE session_id=$2`;
+      const query = `UPDATE user_session SET update_time=$1 WHERE session_id=$2`;
       const { rowCount } = await connection.query(query, ['NOW()', session_id]);
       connection.release();
       return rowCount == 1;
@@ -608,7 +608,7 @@ class userModel {
           Promise.all([
             this.initOptions(user.username),
             this.addActivity(user.username, 'You Created This Account'),
-            this.insertDefaultImage(user.username),
+            this.getCurrentProfileImage(user.username),
           ]);
           profile.username = user.username;
           profile.user = user;
@@ -747,7 +747,7 @@ class userModel {
   async getUserImages(username: string): Promise<string[]> {
     try {
       const connection: PoolClient = await db.connect();
-      const query = `SELECT img_src FROM user_image WHERE username=$1`;
+      const query = `SELECT img_src FROM user_image WHERE username=$1 ORDER BY img_src DESC`;
       const { rows } = await connection.query(query, [username]);
       connection.release();
       return rows;
@@ -765,6 +765,7 @@ class userModel {
       const query = `SELECT MAX(img_src) AS "img_src" FROM user_image WHERE username=$1`;
       const { rows } = await connection.query(query, [username]);
       connection.release();
+      if(!rows[0].img_src) return 'default_user.jpg';
       return rows[0].img_src;
     } catch (err: any) {
       const error: IError = {
@@ -800,6 +801,21 @@ class userModel {
       connection.release();
       await addBasicDataToPosts(rows);
       return rows;
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 400,
+      };
+      throw error;
+    }
+  }
+  async deleteUserImage(username: string, image: string): Promise<string> {
+    try {
+      const connection = await db.connect();
+      const query = `DELETE FROM user_image WHERE username=$1 AND img_src=$2`;
+      await connection.query(query, [username, image]);
+      connection.release();
+      return await this.getCurrentProfileImage(username);
     } catch (err: any) {
       const error: IError = {
         message: err.message,

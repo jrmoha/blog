@@ -29,12 +29,12 @@ $(document).ready(function () {
     });
 
 
-    $("#navicon").click(function () {
-        $(".mobilemenu").fadeIn();
-    });
-    $(".all").click(function () {
-        $(".mobilemenu").fadeOut();
-    });
+    // $("#navicon").click(function () {
+    //     $(".mobilemenu").fadeIn();
+    // });
+    // $(".all").click(function () {
+    //     $(".mobilemenu").fadeOut();
+    // });
 });
 
 

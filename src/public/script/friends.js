@@ -23,7 +23,9 @@ async function loadFriends() {
         span.innerHTML = `<b>${friend.followed_username}</b>`;
         friendDiv.appendChild(span);
         friendsDiv.appendChild(friendDiv);
-        friendDiv.addEventListener("click", openChatBox);
+        friendDiv.addEventListener("click", function () {
+            openChatBox(friend.followed_username);
+        });
     }
 }
 loadFriends();

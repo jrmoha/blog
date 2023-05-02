@@ -1,0 +1,52 @@
+<%- include('partials/header') %>
+    <%- include('partials/navbar') %>
+        <div class="all">
+            <%- include('partials/left-bar')%>
+
+
+                <div class="right_row" style="width:80%;">
+                    <div class="row border-radius">
+                        <div class="feed">
+                            <div class="feed_title">
+                                <span><a href="profile.html"><b>Profile</b></a> | <a href="about.html"><b>About</b></a>
+                                    | <a href="photos.html" id="select_profile_menu"><b>Photos</b></a></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row shadow">
+                        <div class="row_title">
+                            <span>Photos</span>
+                        </div>
+                        <% if(photos.length==0){%>
+                            <center>No Photos Have been Uploaded</center>
+                            <% }else{ %>
+                                <div class="row_contain_profilephotospage">
+                                    <ul>
+                                        <% for(let i=0;i<photos.length;i++){%>
+                                            <li>
+                                                <%if(isOwner){%>
+                                                    <span class="delete-image-button"><i
+                                                            class="fa-solid fa-circle-minus"></i></span>
+                                                    <% }%>
+                                                        <img src="images/users/<%=photos[i].img_src%>" alt="" />
+                                            </li>
+                                            <% } %>
+                                    </ul>
+                                </div>
+                                <% } %>
+                    </div>
+                    <div class="image-gallery">
+                        <div class="image-container">
+                            <img src="" alt="Image 1">
+                            <span class="exit-button">&times;</span>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="chat-popup"></div>
+        </div>
+
+
+        <%- include('partials/modals')%>
+            <%- include('partials/footer') %>

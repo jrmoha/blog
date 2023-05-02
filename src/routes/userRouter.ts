@@ -27,6 +27,10 @@ router.delete(
   '/api/unfollow/:username',
   authenticationMiddleware,
   userController.unfollowController
+);router.delete(
+  '/api/delete/photo',
+  authenticationMiddleware,
+  userController.deleteProfilePictureController
 );
 router.post(
   '/api/image/change',
@@ -44,9 +48,15 @@ router.get(
   authenticationMiddleware,
   userController.followingsPageController
 );
+router.get(
+  '/users/:username/photos',
+  authenticationMiddleware,
+  userController.photosPageController
+);
 router.delete(
   '/api/delete/:username',
   authenticationMiddleware,
   userController.deleteFollowerController
 );
+
 export default router;

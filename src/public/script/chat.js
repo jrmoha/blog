@@ -25,10 +25,6 @@ socket.on("inbox", (current_user, inboxes) => {
     });
 });
 
-document.querySelectorAll(".friend-sidebar").forEach((friend) => {
-    friend.addEventListener("click", () => { openChatBox(friend.dataset.username, friend.dataset.inbox) });
-});
-
 
 
 function openChatBox(username = undefined, inbox = undefined) {

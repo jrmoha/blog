@@ -36,7 +36,7 @@ for (let i = 0; i < profilephotospage.length; i++) {
                 i--;
                 image.src = profilephotospage[i].getAttribute("src");
                 imageContainer.appendChild(right_span);
-                if(i === 0){
+                if (i === 0) {
                     imageContainer.removeChild(left_span);
                 }
             }
@@ -46,10 +46,31 @@ for (let i = 0; i < profilephotospage.length; i++) {
                 i++;
                 image.src = profilephotospage[i].getAttribute("src");
                 imageContainer.appendChild(left_span);
-                if(i === profilephotospage.length - 1){
+                if (i === profilephotospage.length - 1) {
                     imageContainer.removeChild(right_span);
                 }
             }
         });
     });
 }
+const delete_button = document.querySelectorAll(".delete-image-button");
+for (let i = 0; i < delete_button.length; i++) {
+    delete_button[i].addEventListener("click", async () => {
+        const img_src = delete_button[i].nextElementSibling.getAttribute("src");
+        const response = await fetch("http://localhost:3000/api/delete/photo", {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                image: img_src.split("/")[2],
+            }),
+        });
+        const data = await response.json();
+        console.log(data);
+        if (data.success) {
+            delete_button[i].nextElementSibling.remove();
+            delete_button[i].remove();
+        }
+    });
+};
