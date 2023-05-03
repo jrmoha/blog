@@ -29,6 +29,16 @@ async function loadFriends() {
     }
 }
 loadFriends();
+document.querySelectorAll(".follow_button").forEach((btn) => {
+    btn.addEventListener("click", async (e) => {
+        follow_person(btn, btn.dataset.username);
+    });
+});
+document.querySelectorAll(".unfollow_button").forEach((btn) => {
+    btn.addEventListener("click", async (e) => {
+        unfollow_person(btn, btn.dataset.username);
+    });
+});
 document.querySelectorAll(".delete_follower").forEach((btn) => {
     btn.addEventListener("click", async (e) => {
         delete_follower(btn, btn.dataset.username);

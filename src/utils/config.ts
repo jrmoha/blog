@@ -48,4 +48,5 @@ export default {
   message: {
     secret: MESSAGE_SECRET,
   },
+  default_profile_image: 'default_user.jpg',
 };

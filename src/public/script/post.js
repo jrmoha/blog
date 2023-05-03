@@ -183,6 +183,7 @@ async function follow_person(btn, username) {
         const unfollow_button = document.createElement('button');
         unfollow_button.textContent = "Unfollow";
         unfollow_button.classList.add('unfollow_button');
+        unfollow_button.dataset.username = username;
         btn.replaceWith(unfollow_button);
         unfollow_button.addEventListener('click', async function () {
             unfollow_person(unfollow_button, username);
@@ -202,6 +203,7 @@ async function unfollow_person(btn, username) {
         const follow_button = document.createElement('button');
         follow_button.textContent = "Follow";
         follow_button.classList.add('follow_button');
+        follow_button.dataset.username = username;
         btn.replaceWith(follow_button);
         follow_button.addEventListener('click', async function () {
             follow_person(follow_button, username);
@@ -340,6 +342,6 @@ window.onload = function () {
 };
 function parseHashtags(post){
     const hashtag_regex = /\B#([a-zA-Z0-9_]+\b)(?!;)/gm;
-    post.innerHTML = post.innerHTML.replace(hashtag_regex, `<a class="hashtag" href="/posts/hashtag/$1">#$1</a>`);
+    post.innerHTML = post.innerHTML.replace(hashtag_regex, `<a class="hashtag" href="/posts/hashtags/$1">#$1</a>`);
 
 }

@@ -1,9 +1,22 @@
 const profilephotospage = document.querySelectorAll(".row_contain_profilephotospage img");
 for (let i = 0; i < profilephotospage.length; i++) {
     profilephotospage[i].addEventListener("click", () => {
+        const blurContainer = document.createElement("div");
+        blurContainer.style.position = "fixed";
+        blurContainer.style.top = "0";
+        blurContainer.style.left = "0";
+        blurContainer.style.width = "100%";
+        blurContainer.style.height = "100%";
+        blurContainer.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+        blurContainer.style.backdropFilter = "blur(5px)";
+        blurContainer.style.zIndex = "999";
+
+
         const imageGallery = document.querySelector(".image-gallery");
         const imageContainer = document.querySelector(".image-container");
-        imageGallery.style.display = "flex";
+        imageGallery.style.display = "block";
+        blurContainer.appendChild(imageGallery);
+        document.body.appendChild(blurContainer);
         const image = imageGallery.querySelector("img");
         image.src = profilephotospage[i].getAttribute("src");
 
@@ -16,17 +29,16 @@ for (let i = 0; i < profilephotospage.length; i++) {
         right_span.classList.add("arrow-button");
         right_span.classList.add("right");
         right_span.innerHTML = "&gt;";
-
-
         if (i === 0) {
-            imageContainer.appendChild(right_span);
+            if (i !== profilephotospage.length - 1) imageContainer.appendChild(right_span);
         } else if (i === profilephotospage.length - 1) {
-            imageContainer.appendChild(left_span);
+            if (i !== 0) imageContainer.appendChild(left_span);
         } else {
             imageContainer.appendChild(left_span);
             imageContainer.appendChild(right_span);
         }
         document.querySelector(".exit-button").addEventListener("click", () => {
+            blurContainer.remove();
             imageGallery.style.display = "none";
             imageContainer.removeChild(left_span);
             imageContainer.removeChild(right_span);

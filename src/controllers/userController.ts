@@ -2,7 +2,6 @@ import userModel from '../models/userModel';
 import { Request, Response } from 'express';
 import Post from '../types/post_type';
 import postModel from '../models/postModel';
-import User from '../types/user_type';
 import jwt from 'jsonwebtoken';
 import config from '../utils/config';
 export const getFeed = async (req: Request, res: Response) => {
@@ -89,19 +88,49 @@ export const unfollowController = async (req: Request, res: Response) => {
 export const followersPageController = async (req: Request, res: Response) => {
   try {
     const current_username = req?.user as string;
-    // const profile_username = req.params.username;
-    const followers: any[] = await userModel.getFollowers(
-      current_username
-      // profile_username
-    );
+    const profile_username = req.params.username;
+    const followers: any[] = await userModel.getFollowers(profile_username);
+    if (profile_username === current_username) {
+      res.locals.isOwner = true;
+    } else {
+      res.locals.isOwner = false;
+    }
+
     for (let i = 0; i < followers.length; i++) {
       if (followers[i].follower_username === current_username) {
         followers[i].follow_status = 0;
-        break;
+      } else {
+        followers[i].follow_status = await userModel.isFollowing(
+          current_username,
+          followers[i].follower_username
+        );
       }
     }
     console.log(followers);
     res.render('followers', { followers: followers, title: 'Followers' });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const followingsPageController = async (req: Request, res: Response) => {
+  try {
+    const current_username = req?.user as string;
+    const profile_username = req.params.username;
+    const followings: any[] = await userModel.getFollowings(profile_username);
+    for (let i = 0; i < followings.length; i++) {
+      if (followings[i].followed_username === current_username) {
+        followings[i].follow_status = 0;
+      } else {
+        followings[i].follow_status = await userModel.isFollowing(
+          current_username,
+          followings[i].followed_username
+        );
+      }
+    }
+    console.log(followings);
+
+    res.render('followings', { followings: followings, title: 'Followings' });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
@@ -112,21 +141,6 @@ export const deleteFollowerController = async (req: Request, res: Response) => {
     const friend = req.params.username;
     const response = await userModel.deleteFollower(username as string, friend);
     res.json({ success: response });
-  } catch (error: any) {
-    res.status(500).json({ message: error.message });
-  }
-};
-export const followingsPageController = async (req: Request, res: Response) => {
-  try {
-    const current_username = req?.user as string;
-    // const profile_username = req.params.username;
-    const followings: User[] = await userModel.getFollowings(
-      current_username
-      // profile_username
-    );
-    console.log(followings);
-
-    res.render('followings', { followings: followings, title: 'Followings' });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }

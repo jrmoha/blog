@@ -4,7 +4,6 @@ import IError from '../interfaces/error';
 import Options from '../types/options_type';
 import { PoolClient } from 'pg';
 import postModel from './postModel';
-//import config from '../utils/config';
 import {
   comparePassword,
   hashPassword,
@@ -12,7 +11,7 @@ import {
   addBasicDataToPosts,
 } from '../utils/functions';
 import Post from '../types/post_type';
-//const { lastseen_timeout } = config; //30000ms
+import config from '../utils/config';
 
 class userModel {
   async username_email_taken(
@@ -94,8 +93,9 @@ class userModel {
   async authenticateUser(username: string, password: string): Promise<User> {
     try {
       const connection: PoolClient = await db.connect();
-      const query = `SELECT username,email,password,first_name,last_name FROM users WHERE username=$1`;
+      const query = `SELECT username,email,password,first_name,last_name FROM users WHERE username=$1 OR email=$1`;
       const result = await connection.query(query, [username]);
+      connection.release();
       const err: IError = {
         name: 'Authentication Error',
         message: ``,
@@ -428,22 +428,18 @@ class userModel {
       throw error;
     }
   }
-  async getFollowers(
-    current_username: string
-    // profile_username: string
-  ): Promise<User[]> {
+  async getFollowers(current_username: string): Promise<User[]> {
     try {
       const connection: PoolClient = await db.connect();
       let query = `SELECT f.follower_username,u.first_name,u.last_name,`;
       query += `(SELECT MAX(ui.img_src) AS "img_src" FROM user_image ui WHERE ui.username=f.follower_username) `;
-      // query += `,(SELECT follow_status FROM follow WHERE follower_username=$1 AND followed_username=f.follower_username) `;
       query += `FROM follow f JOIN users u ON u.username=f.follower_username `;
       query += `WHERE f.followed_username=$1 AND f.follow_status=1`;
-      const { rows } = await connection.query(query, [
-        current_username,
-        // profile_username,
-      ]);
+      const { rows } = await connection.query(query, [current_username]);
       connection.release();
+      for (const row of rows) {
+        if (!row.img_src) row.img_src = config.default_profile_image;
+      }
       return rows;
     } catch (err: any) {
       const error: IError = {
@@ -453,22 +449,18 @@ class userModel {
       throw error;
     }
   }
-  async getFollowings(
-    current_username: string
-    // profile_username: string
-  ): Promise<User[]> {
+  async getFollowings(current_username: string): Promise<User[]> {
     try {
       const connection: PoolClient = await db.connect();
       let query = `SELECT f.followed_username,u.first_name,u.last_name,`;
       query += `(SELECT MAX(ui.img_src) AS "img_src" FROM user_image ui WHERE ui.username=f.followed_username) `;
-      // query += `,(SELECT follow_status FROM follow WHERE followed_username=$1 AND follower_username=f.followed_username) `;
       query += `FROM follow f JOIN users u ON u.username=f.follower_username `;
       query += `WHERE f.follower_username=$1 AND f.follow_status=1`;
-      const { rows } = await connection.query(query, [
-        current_username,
-        // profile_username,
-      ]);
+      const { rows } = await connection.query(query, [current_username]);
       connection.release();
+      for (const row of rows) {
+        if (!row.img_src) row.img_src = config.default_profile_image;
+      }
       return rows;
     } catch (err: any) {
       const error: IError = {
@@ -669,12 +661,19 @@ class userModel {
       throw error;
     }
   }
-  async isFollowing(follower: string, followed: string): Promise<number> {
+  async isFollowing(
+    follower: string,
+    followed: string
+  ): Promise<number | null> {
     try {
       const connection = await db.connect();
       const query = `SELECT follow_status FROM follow WHERE follower_username=$1 AND followed_username=$2 AND follow_status=1`;
       const { rows } = await connection.query(query, [follower, followed]);
-      return rows[0].follow_status;
+      connection.release();
+      console.log('isFollowing');
+      
+      console.log(rows);
+      return rows.length > 0 ? rows[0].follow_status : null;
     } catch (err: any) {
       const error: IError = {
         message: err.message,
@@ -714,7 +713,7 @@ class userModel {
       const query = `INSERT INTO user_image (username,img_src) VALUES ($1,$2) RETURNING img_src`;
       const { rows } = await connection.query(query, [
         username,
-        'default_user.jpg',
+        config.default_profile_image,
       ]);
       connection.release();
       return rows[0].image;
@@ -765,7 +764,7 @@ class userModel {
       const query = `SELECT MAX(img_src) AS "img_src" FROM user_image WHERE username=$1`;
       const { rows } = await connection.query(query, [username]);
       connection.release();
-      if(!rows[0].img_src) return 'default_user.jpg';
+      if (!rows[0].img_src) return config.default_profile_image;
       return rows[0].img_src;
     } catch (err: any) {
       const error: IError = {

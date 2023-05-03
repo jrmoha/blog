@@ -354,6 +354,9 @@ class postModel {
       query += `FROM post_like p WHERE p.post_id=$2`;
       const { rows } = await connection.query(query, [username, post_id]);
       connection.release();
+      for (const row of rows) {
+        if (!row.image) row.image = 'default_user.jpg';
+      }
       return rows;
     } catch (err: any) {
       const error: IError = {

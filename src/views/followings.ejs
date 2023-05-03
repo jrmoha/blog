@@ -14,10 +14,13 @@
                                                     <%=person.last_name%>
                                             </b><br></a>
                                     </span>
-                                    <% if (person.follow_status==1) { %>
-                                        <button class="delete_follower"
-                                            data-username=<%=person.followed_username%>>Delete</button>
-                                        <% } %>
+                                    <% if(person.follow_status==null){%>
+                                        <button class="follow_button"
+                                            data-username=<%=person.followed_username%>>Follow</button>
+                                        <%}else if(person.follow_status==1){%>
+                                            <button class="unfollow_button"
+                                                data-username=<%=person.followed_username%>>Unfollow</button>
+                                            <%}%>
                                 </div>
                                 <% }) %>
                         </div>
