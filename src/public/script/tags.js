@@ -12,6 +12,6 @@ async function updateTags() {
         tagsBody.appendChild(tagDiv);
     });
 }
-if (window.location.pathname.split('/')[1] !== "users") {
+document.addEventListener("DOMContentLoaded", () => {
     updateTags();
-}
+});

@@ -13,7 +13,7 @@
                                             <img src="images/users/<%=post.user_image%>" alt="" /></a>
                                         <span><b>
                                                 <%=post.username%>
-                                            </b> Shared a <a href="/post/<%=post.post_id%>">Post<br>
+                                            </b> Shared a <a href="/posts/post/<%=post.post_id%>">Post<br>
                                                 <p style="color: #515365;">
                                                     <%=post.last_update%>
                                                         <% if (post.modified) { %>
@@ -29,7 +29,7 @@
                                         </p>
                                         <% if (post.images.length){%>
                                             <div class="feed_content_image">
-                                                <a href="/post/<%=post.post_id%>"><img
+                                                <a href="/posts/post/<%=post.post_id%>"><img
                                                         src="images/posts/<%=post.single_image.img_src%>" alt="" /></a>
                                             </div>
                                             <%}%>
@@ -40,14 +40,13 @@
                                             <% if (liked_posts.includes(post.post_id)) { %>
 
                                                 <i class="fa-solid fa-thumbs-up unlike-buttons"
-                                                    data-postId=<%=post.post_id%>></i>
+                                                    data-post_id=<%=post.post_id%>></i>
                                                 <% }else{ %>
                                                     <i class="fa-regular fa-thumbs-up like-buttons"
-                                                        data-postId=<%=post.post_id%>></i>
+                                                        data-post_id=<%=post.post_id%>></i>
                                                     <%}%>
 
-                                                        <li class="hover-orange selected-orange"
-                                                            id="likes-count-<%=post.likes_number%>">
+                                                        <li class="hover-orange selected-orange">
                                                             <%=post.likes_number%>
                                                         </li>
                                         </ul>

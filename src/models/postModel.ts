@@ -4,7 +4,8 @@ import Comment from '../types/comment_type';
 import IError from '../interfaces/error';
 import User from '../types/user_type';
 import config from '../utils/config';
-import { addBasicDataToPosts } from '../utils/functions';
+import { addBasicDataToPosts, formatTime } from '../utils/functions';
+import userModel from './userModel';
 const { trending_num } = config;
 class postModel {
   async getPost(post_id: number): Promise<Post> {
@@ -175,7 +176,7 @@ class postModel {
       const query = `UPDATE post_comment SET comment_content = $1,update_time=NOW() WHERE comment_id=$2 returning *`;
       const { rows } = await connection.query(query, [new_comment, comment_id]);
       connection.release();
-      return rows[0];
+      return rows[0].comment_content;
     } catch (err: any) {
       const error: IError = {
         message: err.message,
@@ -333,9 +334,13 @@ class postModel {
   async getComments(post_id: number): Promise<Comment[]> {
     try {
       const connection = await db.connect();
-      const query = `SELECT * FROM post_comment WHERE post_id=$1`;
+      const query = `SELECT * FROM post_comment WHERE post_id=$1 ORDER BY comment_time DESC`;
       const { rows } = await connection.query(query, [post_id]);
       connection.release();
+      for (const row of rows) {
+        row.user_image = await userModel.getCurrentProfileImage(row.username);
+        row.comment_time = formatTime(row.comment_time);
+      }
       return rows;
     } catch (err: any) {
       const error: IError = {
@@ -526,6 +531,21 @@ class postModel {
       const { rows } = await connection.query(query, [post_id]);
       connection.release();
       return parseInt(rows[0].count);
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 500,
+      };
+      throw error;
+    }
+  }
+  async isLiked(username: string, post_id: number): Promise<boolean> {
+    try {
+      const connection = await db.connect();
+      const query = `SELECT * FROM post_like WHERE post_id=$1 AND username=$2`;
+      const { rowCount } = await connection.query(query, [post_id, username]);
+      connection.release();
+      return rowCount == 1;
     } catch (err: any) {
       const error: IError = {
         message: err.message,

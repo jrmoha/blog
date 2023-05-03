@@ -16,6 +16,7 @@ type Post = {
   user_image?: string;
   modified?: boolean;
   last_update?: string;
+  liked?: boolean;
 };
 
 export default Post;

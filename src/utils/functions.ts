@@ -76,13 +76,14 @@ export const addBasicDataToPosts = async (posts: Post[]): Promise<void> => {
     const all = await Promise.all([
       postModel.getPostImages(post.post_id),
       postModel.getPostLikesNumber(post.post_id),
-      postModel.getPostCommentsNumber(post.post_id),
+      postModel.getComments(post.post_id),
       userModel.getCurrentProfileImage(post.username),
     ]);
     post.images = all[0];
     post.single_image = all[0][0];
     post.likes_number = all[1];
-    post.comments_number = all[2];
+    post.comments = all[2];
+    post.comments_number = all[2].length;
     post.user_image = all[3];
     post.modified =
       new Date(post.upload_date as string).getTime() !==

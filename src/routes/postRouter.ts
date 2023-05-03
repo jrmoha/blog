@@ -41,7 +41,7 @@ router.put('/edit', postController.editPost);
 router.delete('/delete', postController.deletePost);
 router.get('/search', postController.searchForAPost);
 router.get('/trendingtags', postController.trendingTags);
-router.get('/:post_id', postController.getPost);
+router.get('/post/:post_id', authenticationMiddleware, postController.getPost);
 router.post(
   '/api/post/like/:post_id',
   authenticationMiddleware,
@@ -57,10 +57,22 @@ router.get(
   authenticationMiddleware,
   postController.getLikes
 );
-router.post('/comment', postController.addComment);
-router.delete('/deleteComment', postController.deleteComment);
-router.put('/editComment', postController.editComment);
-router.post('/viewpost', postController.viewPost);
+router.post(
+  '/api/addComment',
+  authenticationMiddleware,
+  postController.addComment
+);
+router.delete(
+  '/api/deleteComment',
+  authenticationMiddleware,
+  postController.deleteComment
+);
+router.put(
+  '/api/editComment',
+  authenticationMiddleware,
+  postController.editComment
+);
+// router.post('/viewpost', postController.viewPost);
 router.get('/user/:username', postController.getPostsByUser);
 router.get(
   '/hashtags/:hashtag',

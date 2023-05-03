@@ -1,3 +1,4 @@
+
 const likeBtns = document.querySelectorAll(".hover-orange.selected-orange");
 likeBtns.forEach((btn) => {
     btn.addEventListener("click", async function () {
@@ -6,7 +7,7 @@ likeBtns.forEach((btn) => {
 });
 
 async function getLikes(btn) {
-    const postId = btn.closest(".feed_footer_left").querySelector("i").dataset.postid;
+    const post_id = btn.closest(".feed_footer_left").querySelector("i").dataset.post_id;
     // create the blur container
     const blurContainer = document.createElement("div");
     blurContainer.style.position = "fixed";
@@ -50,7 +51,7 @@ async function getLikes(btn) {
     const likesList = document.createElement("ul");
 
     // add dummy likes for demonstration purposes
-    const response = await fetch(`/posts/api/post/likes/${postId}`, {
+    const response = await fetch(`/posts/api/post/likes/${post_id}`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json"
@@ -129,9 +130,9 @@ function parseHashtag(text) {
     return matches;
 }
 async function likePost(btn) {
-    const postid = btn.dataset.postid;
+    const post_id = btn.dataset.post_id;
     //api call
-    const response = await fetch(`/posts/api/post/like/${postid}`, {
+    const response = await fetch(`/posts/api/post/like/${post_id}`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -143,7 +144,7 @@ async function likePost(btn) {
     unlikeBtn.classList.add("fa-solid");
     unlikeBtn.classList.add("fa-thumbs-up");
     unlikeBtn.classList.add("unlike-buttons");
-    unlikeBtn.dataset.postid = postid;
+    unlikeBtn.dataset.post_id = post_id;
     btn.replaceWith(unlikeBtn);
     unlikeBtn.addEventListener("click", function () {
         unlikePost(unlikeBtn);
@@ -151,9 +152,9 @@ async function likePost(btn) {
 }
 
 async function unlikePost(btn) {
-    const postid = btn.dataset.postid;
+    const post_id = btn.dataset.post_id;
     //api call
-    const response = await fetch(`/posts/api/post/unlike/${postid}`, {
+    const response = await fetch(`/posts/api/post/unlike/${post_id}`, {
         method: "DELETE",
         headers: {
             "Content-Type": "application/json",
@@ -165,7 +166,7 @@ async function unlikePost(btn) {
     unlikeBtn.classList.add("fa-regular");
     unlikeBtn.classList.add("fa-thumbs-up");
     unlikeBtn.classList.add("like-buttons");
-    unlikeBtn.dataset.postid = postid;
+    unlikeBtn.dataset.post_id = post_id;
     btn.replaceWith(unlikeBtn);
     unlikeBtn.addEventListener("click", function () {
         likePost(unlikeBtn);
@@ -222,117 +223,262 @@ document.querySelectorAll(".unlike-buttons").forEach((btn) => {
     });
 });
 const postsImages = [];
-document.querySelector(".publish_icons").querySelector("li").addEventListener("click", function () {
-    const inputTag = document.createElement("input");
-    inputTag.type = "file";
-    inputTag.accept = "image/*";
-    inputTag.multiple = true;
-    const imagesDiv = document.querySelector(".images");
-    inputTag.addEventListener("change", function () {
-        const [file] = inputTag.files;
-        postsImages.push(file);
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                const img = document.createElement("img");
-                img.src = e.target.result;
-                imagesDiv.appendChild(img);
+const publishIcons = document.querySelector(".publish_icons")
+if (publishIcons) {
+    publishIcons.querySelector("li").addEventListener("click", function () {
+        const inputTag = document.createElement("input");
+        inputTag.type = "file";
+        inputTag.accept = "image/*";
+        inputTag.multiple = true;
+        const imagesDiv = document.querySelector(".images");
+        inputTag.addEventListener("change", function () {
+            const [file] = inputTag.files;
+            postsImages.push(file);
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = document.createElement("img");
+                    img.src = e.target.result;
+                    imagesDiv.appendChild(img);
+                }
+                reader.readAsDataURL(file);
             }
-            reader.readAsDataURL(file);
+        });
+        inputTag.click();
+    });
+}
+//video button
+// document.querySelector(".publish_icons").querySelector("li:nth-child(2)").addEventListener("click", function () {});
+const publishButton = document.querySelector(".publish_icons");
+if (publishButton) {
+    publishButton.querySelector("button").addEventListener("click", async function () {
+        const postArea = document.querySelector('textarea[name="postArea"]');
+        const images = document.querySelector(".images");
+        if (postArea.value.trim() === "" && postsImages.length === 0) {
+            return;
+        } else {
+            const formData = new FormData();
+            postsImages.forEach((image) => {
+                formData.append("images", image);
+            });
+            formData.append("content", postArea.value.trim());
+            const response = await fetch("/posts/api/create", {
+                method: "POST",
+                body: formData,
+            });
+            const data = await response.json();
+            if (data.success) {
+                postArea.value = "";
+                images.innerHTML = "";
+                postsImages.length = 0;
+                const post = document.createElement("div");
+                post.classList.add("row");
+                post.classList.add("border-radius");
+                post.innerHTML = `
+           <div class="feed">
+                                        <div class="feed_title">
+                                            <a href="/users/${data.response.username}">
+                                                <img src=${document.getElementById("profile_pic").src} alt="" /></a>
+                                            <span><b>
+                                                   You
+                                                </b> Shared a <a href="/post/${data.response.post_id}">Post<br>
+                                                    <p style="color: #515365;">
+                                                      Now
+                                                    </p>
+                                                </a>
+                                            </span>
+                                        </div>
+                                        <div class="feed_content">
+                                            <p>
+                                                ${data.response.post_content}
+                                            </p>`;
+                if (data.response.single_image) {
+                    post.innerHTML += `<div class="feed_content_image">
+                                            <a href="/post/${data.response.post_id}"><img
+                                            src="images/posts/${data.response.single_image}" alt="" /></a>
+                                                </div>`
+                }
+
+                post.innerHTML += `</div>
+                                        <div class="feed_footer">
+                                            <ul class="feed_footer_left">
+                                               
+                                                        <i class="fa-regular fa-thumbs-up like-buttons"
+                                                        data-post_id=${data.response.post_id}></i>
+                                                       
+    
+                                                            <li class="hover-orange selected-orange">
+                                                               0
+                                                            </li>
+                                            </ul>
+                                            <ul class="feed_footer_right">
+                                                <li>
+                                                <li class="hover-orange selected-orange">
+                                                    <a href="/post/${data.response.post_id}" style="color:#515365;">
+                                                <li class="hover-orange"><i class="fa fa-comments-o"></i>
+                                                    0 comments
+                                                </li>
+                                                </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>`;
+                setTimeout(function () {
+                    document.querySelector(".row").after(post);
+                    document.querySelector(".like-buttons").addEventListener("click", function () {
+                        likePost(document.querySelector(".like-buttons"));
+                    });
+
+                    document.querySelector(".hover-orange.selected-orange").addEventListener("click", function () {
+                        getLikes(document.querySelector(".hover-orange.selected-orange"));
+                    });
+                    parseHashtags(post.querySelector(".feed_content p"));
+                }, 1000);
+            } else {
+                console.log(data);
+                window.location.reload();
+            }
         }
     });
-    inputTag.click();
-});
-// document.querySelector(".publish_icons").querySelector("li:nth-child(2)").addEventListener("click", function () {});
-document.querySelector(".publish_icons").querySelector("button").addEventListener("click", async function () {
-    const postArea = document.querySelector('textarea[name="postArea"]');
-    const images = document.querySelector(".images");
-    if (postArea.value.trim() === "" && postsImages.length === 0) {
-        return;
+}
+const comment_button = document.querySelector(".add-comment button")
+if (comment_button) {
+    comment_button.addEventListener("click", add_comment);
+}
+const delete_comment_buttons = document.querySelectorAll(".delete-comment-button");
+const edit_comment_buttons = document.querySelectorAll(".edit-comment-button");
+if (delete_comment_buttons) {
+    delete_comment_buttons.forEach((btn) => {
+        btn.addEventListener("click", function () {
+            delete_comment(btn);
+        });
+    });
+}
+if (edit_comment_buttons) {
+    edit_comment_buttons.forEach((btn) => {
+        btn.addEventListener("click", function () {
+            edit_comment(btn);
+        });
+    });
+}
+
+async function add_comment() {
+    const comment = document.getElementById("comment");
+    const post_id = document.querySelector(".feed_footer_left i").dataset.post_id;
+
+    const response = await fetch(`/posts/api/addComment`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            comment: comment.value,
+            post_id: post_id,
+        }),
+    });
+    const data = await response.json();
+    if (data.success) {
+        const comment = data.response;
+        let commentDiv = document.createElement("div");
+        commentDiv.classList.add("comment");
+        commentDiv.dataset.comment_id = comment.comment_id;
+        commentDiv.innerHTML = `
+        <img src="images/users/${comment.user_image}" alt="User Avatar"
+      class="comment-avatar">
+      <div class="comment-details">
+        <h3 class="comment-author">
+            <a href="/users/${comment.username}">
+            ${comment.username}
+            </a><small>
+                Now
+            </small>
+         </h3>
+        <p class="comment-text">
+        ${comment.comment_content}
+        </p>
+        </div>
+      `;
+        const edit_span = document.createElement("span");
+        edit_span.classList.add("edit-comment-button");
+        edit_span.title = "Edit Comment";
+        edit_span.innerHTML = `<i class="fa-solid fa-pen fa-xs"></i>`;
+        const delete_span = document.createElement("span");
+        delete_span.classList.add("delete-comment-button");
+        delete_span.title = "Delete Comment";
+        delete_span.innerHTML = `<i class="fa-solid fa-minus"></i>`;
+        edit_span.addEventListener("click", function () {
+            edit_comment(edit_span);
+        });
+        delete_span.addEventListener("click", function () {
+            delete_comment(delete_span);
+        });
+        commentDiv.appendChild(edit_span);
+        commentDiv.appendChild(delete_span);
+        const br = document.createElement("br");
+        document.querySelector(".comment-form").after(br);
+        br.after(commentDiv);
     } else {
-        const formData = new FormData();
-        postsImages.forEach((image) => {
-            formData.append("images", image);
-        });
-        formData.append("content", postArea.value.trim());
-        const response = await fetch("/posts/api/create", {
-            method: "POST",
-            body: formData,
-        });
-        const data = await response.json();
-        if (data.success) {
-            postArea.value = "";
-            images.innerHTML = "";
-            postsImages.length = 0;
-            const post = document.createElement("div");
-            post.classList.add("row");
-            post.classList.add("border-radius");
-            post.innerHTML = `
-       <div class="feed">
-                                    <div class="feed_title">
-                                        <a href="/users/${data.response.username}">
-                                            <img src=${document.getElementById("profile_pic").src} alt="" /></a>
-                                        <span><b>
-                                               You
-                                            </b> Shared a <a href="/post/${data.response.post_id}">Post<br>
-                                                <p style="color: #515365;">
-                                                  Now
-                                                </p>
-                                            </a>
-                                        </span>
-                                    </div>
-                                    <div class="feed_content">
-                                        <p>
-                                            ${data.response.post_content}
-                                        </p>`;
-            if (data.response.single_image) {
-                post.innerHTML += `<div class="feed_content_image">
-                                        <a href="/post/${data.response.post_id}"><img
-                                        src="images/posts/${data.response.single_image}" alt="" /></a>
-                                            </div>`
-            }
-
-            post.innerHTML += `</div>
-                                    <div class="feed_footer">
-                                        <ul class="feed_footer_left">
-                                           
-                                                    <i class="fa-regular fa-thumbs-up like-buttons"
-                                                    data-postId=${data.response.post_id}></i>
-                                                   
-
-                                                        <li class="hover-orange selected-orange">
-                                                           0
-                                                        </li>
-                                        </ul>
-                                        <ul class="feed_footer_right">
-                                            <li>
-                                            <li class="hover-orange selected-orange">
-                                                <a href="/post/${data.response.post_id}" style="color:#515365;">
-                                            <li class="hover-orange"><i class="fa fa-comments-o"></i>
-                                                0 comments
-                                            </li>
-                                            </a>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>`;
-            setTimeout(function () {
-                document.querySelector(".row").after(post);
-                document.querySelector(".like-buttons").addEventListener("click", function () {
-                    likePost(document.querySelector(".like-buttons"));
-                });
-            
-                document.querySelector(".hover-orange.selected-orange").addEventListener("click", function () {
-                    getLikes(document.querySelector(".hover-orange.selected-orange"));
-                });
-                parseHashtags(post.querySelector(".feed_content p"));
-            }, 1000);
-        } else {
-            console.log(data);
-            window.location.reload();
-        }
+        console.log(data);
     }
-});
+}
+async function delete_comment(btn) {
+    const comment_id = btn.closest(".comment").dataset.comment_id;
+    const response = await fetch(`/posts/api/deleteComment`, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            comment_id: comment_id,
+        }),
+    });
+    const data = await response.json();
+    if (data.success) {
+        btn.closest(".comment").remove();
+    } else {
+        console.log(data);
+    }
+}
+async function edit_comment(btn) {
+    const comment_id = btn.closest(".comment").dataset.comment_id;
+    const comment_content = btn.closest(".comment").querySelector(".comment-text");
+    const comment_text = comment_content.innerHTML.trim();
+    const comment_input = document.createElement("input");
+    comment_input.type = "text";
+    comment_input.value = comment_text;
+    comment_input.classList.add("comment-input");
+    comment_content.innerHTML = "";
+    comment_content.appendChild(comment_input);
+    comment_input.focus();
+    comment_input.addEventListener("keypress", function (e) {
+        if (e.key=="Enter") {
+             update_comment(comment_input, comment_id);
+        }
+    });
+}
+async function update_comment(comment_input, comment_id) {
+    const comment_content = comment_input.value;
+    const response = await fetch(`/posts/api/editComment`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            comment_id: comment_id,
+            new_comment: comment_content,
+        }),
+    });
+    const data = await response.json();
+    if (data.success) {
+        const comment = data.response;
+        const comment_div = comment_input.closest(".comment");
+        comment_div.querySelector(".comment-text").innerHTML = comment;
+        comment_input.remove();
+    } else {
+        console.log(data);
+    }
+}
+
 window.onload = function () {
     const posts = document.querySelectorAll(".feed_content p");
     posts.forEach((post) => {
@@ -340,7 +486,8 @@ window.onload = function () {
     });
 
 };
-function parseHashtags(post){
+
+function parseHashtags(post) {
     const hashtag_regex = /\B#([a-zA-Z0-9_]+\b)(?!;)/gm;
     post.innerHTML = post.innerHTML.replace(hashtag_regex, `<a class="hashtag" href="/posts/hashtags/$1">#$1</a>`);
 

@@ -1,10 +1,6 @@
 import { Express, Request, Response } from 'express';
 import postModel from '../models/postModel';
-import {
-  addBasicDataToPosts,
-  formatTime,
-  getHashtags,
-} from '../utils/functions';
+import { addBasicDataToPosts, getHashtags } from '../utils/functions';
 import Post from '../types/post_type';
 import userModel from '../models/userModel';
 import Comment from '../types/comment_type';
@@ -69,9 +65,22 @@ export const getPost = async (req: Request, res: Response) => {
   try {
     const post_id: number = parseInt(req.params.post_id);
     const response: Post = await postModel.getPost(post_id);
-    res.json(response);
+    await postModel.viewPost(req?.user as string, post_id);
+    await addBasicDataToPosts([response]);
+    response.comments?.forEach((comment) => {
+      if (comment.username === req?.user) {
+        comment.isOwner = true;
+      } else {
+        comment.isOwner = false;
+      }
+    });
+    response.liked = await postModel.isLiked(req?.user as string, post_id);
+    res.render('post', {
+      post: response,
+      title: `${response.username}'s Post`,
+    });
   } catch (err: any) {
-    res.json({ message: err.message, status: err.status });
+    res.render('post', { error: err.message, title: 'Error' });
   }
 };
 export const likePost = async (req: Request, res: Response) => {
@@ -105,15 +114,15 @@ export const unlikePost = async (req: Request, res: Response) => {
 };
 export const addComment = async (req: Request, res: Response) => {
   try {
-    const { username, post_id, comment } = req.body;
+    const username = req?.user as string;
+    const { post_id, comment } = req.body;
     const response: Comment = await postModel.addComment(
       username,
       post_id,
       comment
     );
     if (response) {
-      userModel.addActivity(username, 'You Commented On A Post');
-      response.comment_time = formatTime(response.comment_time);
+      response.user_image = res.locals.user.profile_image;
       res.json({ response: response, success: true });
     } else {
       res.json({ message: 'Post Not Found' });
@@ -124,11 +133,10 @@ export const addComment = async (req: Request, res: Response) => {
 };
 export const deleteComment = async (req: Request, res: Response) => {
   try {
-    const { comment_id, username } = req.body;
+    const { comment_id } = req.body;
     const response: boolean = await postModel.deleteComment(comment_id);
     if (response) {
-      Promise.resolve(userModel.addActivity(username, 'You Deleted A Comment'));
-      res.json({ message: 'Comment Deleted' });
+      res.json({ success: true, message: 'Comment Deleted' });
     } else {
       res.json({ message: 'Post Not Found' });
     }
@@ -144,7 +152,7 @@ export const editComment = async (req: Request, res: Response) => {
       new_comment as string
     );
     if (response) {
-      res.json(response);
+      res.json({ success: true, response: response });
     } else {
       res.json({ message: 'Post Not Found' });
     }
