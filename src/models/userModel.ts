@@ -473,7 +473,7 @@ class userModel {
       const connection: PoolClient = await db.connect();
       let query = `SELECT f.followed_username,u.first_name,u.last_name,`;
       query += `(SELECT MAX(ui.img_src) AS "img_src" FROM user_image ui WHERE ui.username=f.followed_username) `;
-      query += `FROM follow f JOIN users u ON u.username=f.follower_username `;
+      query += `FROM follow f JOIN users u ON u.username=f.followed_username `;
       query += `WHERE f.follower_username=$1 AND f.follow_status=1`;
       const { rows } = await connection.query(query, [current_username]);
       connection.release();

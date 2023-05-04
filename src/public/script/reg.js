@@ -67,10 +67,12 @@ $(document).ready(function () {
                     regex = /^(?=.{4,30}$)(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]+(?<![_.])$/g;
                     break;
                 case 'first_name':
-                    regex = /^[a-zA-z]{1,20}$/g;
+                    // regex = /^[a-zA-z]{1,20}$/g;
+                    regex = /^[\p{L}]+$/u;
                     break;
                 case 'last_name':
-                    regex = /^[a-zA-Z]{1,20}([ ]{0,1}?[a-zA-Z]{1,20}?)*$/g;
+                    // regex = /^[a-zA-Z]{1,20}([ ]{0,1}?[a-zA-Z]{1,20}?)*$/g;
+                    regex = /^[\p{L}]+(\s[\p{L}]+)*$/u;
                     break;
                 case 'reg_email':
                     regex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*.com$/g;
@@ -113,8 +115,10 @@ $(document).ready(function () {
             const reg_password = $("input[name=reg_password]").val();
             const reg_confirm_password = $("input[name=reg_confirm_password]").val();
             const username_regex = /^(?=.{4,30}$)(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]+(?<![_.])$/g;
-            const fname_regex = /^[a-zA-z]{1,20}$/g;
-            const lname_regex = /^[a-zA-Z]{1,20}([ ]{0,1}?[a-zA-Z]{1,20}?)*$/g;
+            // const fname_regex = /^[a-zA-z]{1,20}$/g;
+            const fname_regex = /^[\p{L}]+$/u;
+            //const lname_regex = /^[a-zA-Z]{1,20}([ ]{0,1}?[a-zA-Z]{1,20}?)*$/g;
+            const lname_regex = /^[\p{L}]+(\s[\p{L}]+)*$/u;
             const email_reg_regex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*.com$/sg;
             const reg_password_regex = /^(?=.*\d)(?=.*[!@#$%^&*])(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
             let count = 0

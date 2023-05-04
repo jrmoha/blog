@@ -1,6 +1,11 @@
 'use strict';
 async function loadFriends() {
-    const response = await fetch("http://localhost:3000/api/friends");
+    const response = await fetch("/api/friends", {
+        method: "GET",
+        header: {
+            "Content-Type": "application/json"
+        }
+    });
     const friends = await response.json();
     let friendsDiv = document.querySelector(".friends");
     friendsDiv.innerHTML = "";

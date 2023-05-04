@@ -297,7 +297,7 @@ if (publishButton) {
                                                 <img src=${document.getElementById("profile_pic").src} alt="" /></a>
                                             <span><b>
                                                    You
-                                                </b> Shared a <a href="/post/${data.response.post_id}">Post<br>
+                                                </b> Shared a <a href="/posts/post/${data.response.post_id}">Post<br>
                                                     <p style="color: #515365;">
                                                       Now
                                                     </p>
@@ -310,7 +310,7 @@ if (publishButton) {
                                             </p>`;
                 if (data.response.single_image) {
                     post.innerHTML += `<div class="feed_content_image">
-                                            <a href="/post/${data.response.post_id}"><img
+                                            <a href="/posts/post/${data.response.post_id}"><img
                                             src="images/posts/${data.response.single_image}" alt="" /></a>
                                                 </div>`
                 }
@@ -330,7 +330,7 @@ if (publishButton) {
                                             <ul class="feed_footer_right">
                                                 <li>
                                                 <li class="hover-orange selected-orange">
-                                                    <a href="/post/${data.response.post_id}" style="color:#515365;">
+                                                    <a href="/posts/post/${data.response.post_id}" style="color:#515365;">
                                                 <li class="hover-orange"><i class="fa fa-comments-o"></i>
                                                     0 comments
                                                 </li>
@@ -377,6 +377,13 @@ if (edit_comment_buttons) {
         });
     });
 }
+document.addEventListener("keypress", function (e) {
+    if (e.key === "Enter") {
+        if (document.activeElement.id === "comment") {
+            add_comment();
+        }
+    }
+});
 
 async function add_comment() {
     const comment = document.getElementById("comment");
@@ -394,23 +401,25 @@ async function add_comment() {
     });
     const data = await response.json();
     if (data.success) {
-        const comment = data.response;
+        comment.value = "";
+        comment.focus();
+        const commentResponse = data.response;
         let commentDiv = document.createElement("div");
         commentDiv.classList.add("comment");
-        commentDiv.dataset.comment_id = comment.comment_id;
+        commentDiv.dataset.comment_id = commentResponse.comment_id;
         commentDiv.innerHTML = `
-        <img src="images/users/${comment.user_image}" alt="User Avatar"
+        <img src="images/users/${commentResponse.user_image}" alt="User Avatar"
       class="comment-avatar">
       <div class="comment-details">
         <h3 class="comment-author">
-            <a href="/users/${comment.username}">
-            ${comment.username}
+            <a href="/users/${commentResponse.username}">
+            ${commentResponse.username}
             </a><small>
                 Now
             </small>
          </h3>
         <p class="comment-text">
-        ${comment.comment_content}
+        ${commentResponse.comment_content}
         </p>
         </div>
       `;
