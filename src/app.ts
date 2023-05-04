@@ -46,7 +46,6 @@ app.use(
     origin: '*',
   })
 );
-
 app.use('/', authRouter);
 app.use('/posts', postRouter);
 app.use('/', userRouter);

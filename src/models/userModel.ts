@@ -12,6 +12,7 @@ import {
 } from '../utils/functions';
 import Post from '../types/post_type';
 import config from '../utils/config';
+import Activity from '../types/activity_type';
 
 class userModel {
   async username_email_taken(
@@ -160,12 +161,30 @@ class userModel {
       throw error;
     }
   }
-  async getActivities(username: string): Promise<string[]> {
+  async getActivities(username: string, offset: number): Promise<Activity[]> {
     try {
       const connection: PoolClient = await db.connect();
-      const query = `SELECT activity,activity_date FROM activity WHERE username=$1 ORDER BY activity_date DESC`;
-      const result = await connection.query(query, [username]);
-      return result.rows;
+      const query = `SELECT activity,activity_date FROM activity WHERE username=$1 ORDER BY activity_date DESC LIMIT $2 OFFSET $3`;
+      const { rows } = await connection.query(query, [
+        username,
+        config.activity_page_size,
+        (offset-1)*config.activity_page_size,
+      ]);
+      return rows;
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 400,
+      };
+      throw error;
+    }
+  }
+  async getActivitiesCount(username: string): Promise<number> {
+    try {
+      const connection: PoolClient = await db.connect();
+      const query = `SELECT COUNT(*) FROM activity WHERE username=$1`;
+      const { rows } = await connection.query(query, [username]);
+      return parseInt(rows[0].count);
     } catch (err: any) {
       const error: IError = {
         message: err.message,
@@ -671,7 +690,7 @@ class userModel {
       const { rows } = await connection.query(query, [follower, followed]);
       connection.release();
       console.log('isFollowing');
-      
+
       console.log(rows);
       return rows.length > 0 ? rows[0].follow_status : null;
     } catch (err: any) {

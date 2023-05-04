@@ -34,7 +34,7 @@ const router = Router();
 router.post(
   '/api/create',
   authenticationMiddleware,
-  upload.array('images', 4),
+  upload.array('images', 10),
   postController.createPost
 );
 router.put('/edit', postController.editPost);

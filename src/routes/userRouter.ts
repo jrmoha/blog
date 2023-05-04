@@ -17,6 +17,11 @@ const upload = multer({ storage: storage, limits: { fieldSize: 800000 } });
 const router = Router();
 
 router.get('/', authenticationMiddleware, userController.getFeed);
+router.get(
+  '/activity',
+  authenticationMiddleware,
+  userController.activityPageController
+);
 router.get('/api/friends', authenticationMiddleware, userController.friends);
 router.post(
   '/api/follow/:username',
@@ -27,7 +32,8 @@ router.delete(
   '/api/unfollow/:username',
   authenticationMiddleware,
   userController.unfollowController
-);router.delete(
+);
+router.delete(
   '/api/delete/photo',
   authenticationMiddleware,
   userController.deleteProfilePictureController

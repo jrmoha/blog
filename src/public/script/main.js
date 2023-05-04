@@ -4,27 +4,27 @@ $(document).ready(function () {
         topFunction();
     });
 
-    $("#messagesmodal").hover(function () {
+    $("#messagesmodal").click(function () {
         $(".modal-comments").toggle();
     });
-    $(".modal-comments").hover(function () {
+    $(".modal-comments").click(function () {
         $(".modal-comments").toggle();
     });
 
 
 
-    $("#friendsmodal").hover(function () {
+    $("#friendsmodal").click(function () {
         $(".modal-friends").toggle();
     });
-    $(".modal-friends").hover(function () {
+    $(".modal-friends").click(function () {
         $(".modal-friends").toggle();
     });
 
 
-    $("#profilemodal").hover(function () {
+    $("#profilemodal").click(function () {
         $(".modal-profile").toggle();
     });
-    $(".modal-profile").hover(function () {
+    $(".modal-profile").click(function () {
         $(".modal-profile").toggle();
     });
 

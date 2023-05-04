@@ -232,16 +232,32 @@ if (publishIcons) {
         inputTag.multiple = true;
         const imagesDiv = document.querySelector(".images");
         inputTag.addEventListener("change", function () {
-            const [file] = inputTag.files;
-            postsImages.push(file);
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const img = document.createElement("img");
-                    img.src = e.target.result;
-                    imagesDiv.appendChild(img);
+            const files = inputTag.files;
+            if (postsImages.length + files.length > 10) {
+                const error_div = document.createElement("p");
+                error_div.classList.add("error_div");
+                error_div.textContent = "You can upload maximum 10 images";
+                document.querySelector(".right_row").insertBefore(error_div, document.querySelector(".right_row").firstChild);
+                console.log("You can upload maximum 10 images");
+                return;
+            } else {
+                if (document.querySelector(".error_div")) {
+                    document.querySelector(".error_div").remove();
                 }
-                reader.readAsDataURL(file);
+                for (let i = 0; i < files.length; i++) {
+                    postsImages.push(files[i]);
+                }
+            }
+            if (files.length) {
+                for (let i = 0; i < files.length; i++) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const img = document.createElement("img");
+                        img.src = e.target.result;
+                        imagesDiv.appendChild(img);
+                    }
+                    reader.readAsDataURL(files[i]);
+                }
             }
         });
         inputTag.click();
@@ -451,8 +467,8 @@ async function edit_comment(btn) {
     comment_content.appendChild(comment_input);
     comment_input.focus();
     comment_input.addEventListener("keypress", function (e) {
-        if (e.key=="Enter") {
-             update_comment(comment_input, comment_id);
+        if (e.key == "Enter") {
+            update_comment(comment_input, comment_id);
         }
     });
 }

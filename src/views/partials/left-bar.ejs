@@ -5,24 +5,36 @@
             <img id="profile_pic" src="images/users/<%=user.profile_image%>" />
             <i id="change-profile" class="fa-solid fa-camera"
                 style="color: #FF5E3A; cursor: pointer;margin-top:130px;margin-left:-20px"></i>
-            <span><%=user.user.first_name%> <%=user.user.last_name%><br>
-                <small style="font-size: 0.6rem;"><%=user.user.username%></small>
+            <span>
+                <%=user.user.first_name%>
+                    <%=user.user.last_name%><br>
+                        <small style="font-size: 0.6rem;">
+                            <%=user.user.username%>
+                        </small>
             </span>
         </div>
     </div>
     <div class="rowmenu">
         <ul>
-            <li><a href="/" id="rowmenu-selected"><i class="fa fa-globe"></i>Newsfeed</a></li>
-            <li><a href="profile.html"><i class="fa fa-user"></i>Profile</a></li>
-            <!-- <li><a href="friends.html"><i class="fa fa-users"></i>Friends</a></li> -->
-            <li class="primarymenu"><i class="fa fa-compass"></i>Explore</li>
-            <ul>
-                <li style="border:none"><a href="#A">Activity</a></li>
-                <li style="border:none"><a href="/users/<%=user.user.username%>/followers">Followers</a></li>
-                <li style="border:none"><a href="/users/<%=user.user.username%>/followings">Followings</a></li>
-                <li style="border:none"><a href="#">History</a></li>
-                <li style="border:none"><a href="#">Saved Posts</a></li>
-            </ul>
+            <% if(title=="Feed" ){%>
+                <li><a href="/" id="rowmenu-selected"><i class="fa fa-globe"></i>Newsfeed</a></li>
+                <%}else{ %>
+                    <li><a href="/" ><i class="fa fa-globe"></i>Newsfeed</a></li>
+                    <%}%>
+                        
+
+                                <li><a href="/profile"><i class="fa fa-user"></i>Profile</a></li>
+                                <!-- <li><a href="friends.html"><i class="fa fa-users"></i>Friends</a></li> -->
+                                <li class="primarymenu"><i class="fa fa-compass"></i>Explore</li>
+                                <ul>
+                                    <li style="border:none"><a href="/activity">Activity</a></li>
+                                    <li style="border:none"><a
+                                            href="/users/<%=user.user.username%>/followers">Followers</a></li>
+                                    <li style="border:none"><a
+                                            href="/users/<%=user.user.username%>/followings">Followings</a></li>
+                                    <li style="border:none"><a href="#">History</a></li>
+                                    <li style="border:none"><a href="#">Saved Posts</a></li>
+                                </ul>
         </ul>
     </div>
 </div>

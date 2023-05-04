@@ -4,6 +4,7 @@ import Post from '../types/post_type';
 import postModel from '../models/postModel';
 import jwt from 'jsonwebtoken';
 import config from '../utils/config';
+import Activity from '../types/activity_type';
 export const getFeed = async (req: Request, res: Response) => {
   try {
     const username = req?.user;
@@ -70,6 +71,7 @@ export const followController = async (req: Request, res: Response) => {
     const username = req?.user;
     const friend = req.params.username;
     const response = await userModel.follow(username as string, friend);
+    userModel.addActivity(username as string, `You followed ${friend}`);
     res.json({ success: response });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -80,6 +82,7 @@ export const unfollowController = async (req: Request, res: Response) => {
     const username = req?.user;
     const friend = req.params.username;
     const response = await userModel.unfollow(username as string, friend);
+    userModel.addActivity(username as string, `You Unfollowed ${friend}`);
     res.json({ success: response });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -181,6 +184,30 @@ export const photosPageController = async (req: Request, res: Response) => {
       res.locals.isOwner = false;
     }
     res.render('photos', { photos: photos, title: profile_username });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+export const activityPageController = async (req: Request, res: Response) => {
+  try {
+    const username = req?.user;
+    const page = parseInt(req.query.page as string, 10) || 1;
+    const activities: Activity[] = await userModel.getActivities(
+      username as string,
+      page
+    );
+    activities.forEach((activity) => {
+      activity.activity_date = new Date(activity.activity_date)
+        .toDateString()
+        .slice(0, 15);
+    });
+    const pag_count = await userModel.getActivitiesCount(username as string);
+    res.render('activity', {
+      activities: activities,
+      page: page,
+      title: 'Activity',
+      pag_count: Math.ceil(pag_count / config.activity_page_size),
+    });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }

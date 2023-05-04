@@ -49,4 +49,5 @@ export default {
     secret: MESSAGE_SECRET,
   },
   default_profile_image: 'default_user.jpg',
+  activity_page_size: 15,
 };
