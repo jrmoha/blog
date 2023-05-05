@@ -168,7 +168,7 @@ class userModel {
       const { rows } = await connection.query(query, [
         username,
         config.activity_page_size,
-        (offset-1)*config.activity_page_size,
+        (offset - 1) * config.activity_page_size,
       ]);
       return rows;
     } catch (err: any) {
@@ -343,15 +343,17 @@ class userModel {
       throw error;
     }
   }
-  async editOption(
-    username: string,
-    option: string,
-    value: string
-  ): Promise<Options> {
+  async editOptions(username: string, options: any): Promise<Options> {
     try {
       const connection: PoolClient = await db.connect();
-      const query = `UPDATE options SET ${option}=$1 WHERE username=$2`;
-      const { rows } = await connection.query(query, [value, username]);
+      const keys: string[] = Object.keys(options);
+      const values = Object.values(options);
+      if (keys.length === 0) throw new Error('No Updates Provided');
+      let query = `UPDATE options SET `;
+      query += `${keys.map(
+        (key, index) => `${key}=$${index + 1}`
+      )} WHERE username=$${keys.length + 1}`;
+      const { rows } = await connection.query(query, [...values, username]);
       connection.release();
       return rows[0];
     } catch (err: any) {
@@ -618,7 +620,10 @@ class userModel {
         } else {
           Promise.all([
             this.initOptions(user.username),
-            this.addActivity(user.username, 'You Created This Account'),
+            this.addActivity(
+              user.username,
+              `You Created This Account Via ${profile.provider}`
+            ),
             this.getCurrentProfileImage(user.username),
           ]);
           profile.username = user.username;

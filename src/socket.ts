@@ -59,7 +59,6 @@ export default function (server: http.Server): Server {
             : inbox.username1
         );
       }
-      console.log(current_username);
 
       socket.emit('inbox', socket.decoded?.username, result);
     });
@@ -100,7 +99,8 @@ export default function (server: http.Server): Server {
       }
     });
     socket.on('disconnect', () => {
-      socket.disconnect();
+      console.log(`socket disconnected ${socket.decoded?.username}`);
+      socket.leave(socket.decoded?.username as string);
     });
   });
   return io;

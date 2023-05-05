@@ -212,3 +212,23 @@ export const activityPageController = async (req: Request, res: Response) => {
     res.status(500).json({ message: error.message });
   }
 };
+export const settingsPageController = async (req: Request, res: Response) => {
+  try {
+    const username = req?.user;
+    const options = await userModel.getOptions(username as string);
+    res.locals.options = options;
+    res.render('settings', { title: 'Settings' });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+export const updateSettingsController = async (req: Request, res: Response) => {
+  try {
+    const username = req?.user;
+    const options = req.body;
+    const response = await userModel.editOptions(username as string, options);
+    res.json({ success: true, response: response });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};

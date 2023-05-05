@@ -105,7 +105,7 @@ class ChatModel {
         if (!find_inbox) {
           const new_inbox = await this.createInbox(sender, receiver, message);
           inbox_id = new_inbox.inbox_id;
-        }else{
+        } else {
           inbox_id = find_inbox.inbox_id;
         }
       }
@@ -119,7 +119,7 @@ class ChatModel {
         message,
       ]);
       const update_inbox_query = `UPDATE inbox SET last_message=$1,last_message_time=$2 WHERE inbox_id=$3`;
-      connection.query(update_inbox_query, [message, 'NOW()', inbox_id]);
+      await connection.query(update_inbox_query, [message, 'NOW()', inbox_id]);
       connection.release();
       return rows[0];
     } catch (err: any) {
@@ -136,8 +136,12 @@ class ChatModel {
   // ): Promise<Inbox> {
   //   try {
   //     const connection = await db.connect();
-  //     const query = `UPDATE inbox SET last_message=$1 last_message_time=NOW() WHERE inbox_id=$2 RETURNING *`;
-  //     const { rows } = await connection.query(query, [message, inbox_id]);
+  //     const query = `UPDATE inbox SET last_message=$1,last_message_time=$2 WHERE inbox_id=$3 RETURNING *`;
+  //     const { rows } = await connection.query(query, [
+  //       message,
+  //       'NOW()',
+  //       inbox_id,
+  //     ]);
   //     connection.release();
   //     return rows[0];
   //   } catch (err: any) {

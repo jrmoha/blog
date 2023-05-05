@@ -22,7 +22,17 @@ router.get(
   authenticationMiddleware,
   userController.activityPageController
 );
+router.get(
+  '/settings',
+  authenticationMiddleware,
+  userController.settingsPageController
+);
 router.get('/api/friends', authenticationMiddleware, userController.friends);
+router.put(
+  '/api/editSettings',
+  authenticationMiddleware,
+  userController.updateSettingsController
+);
 router.post(
   '/api/follow/:username',
   authenticationMiddleware,

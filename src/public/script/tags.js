@@ -12,6 +12,6 @@ async function updateTags() {
         tagsBody.appendChild(tagDiv);
     });
 }
-document.addEventListener("DOMContentLoaded", () => {
+if(tagsBody){
     updateTags();
-});
+}

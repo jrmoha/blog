@@ -121,10 +121,12 @@ socket.on("new-message", (message) => {
         document.querySelector(".chat-body").scrollTop = document.querySelector(".chat-body").scrollHeight;
     } else {
         openChatBox(message.sender_username, message.inbox_id);
-    }
+    } 
     socket.emit("load-inbox");
 });
-
+document.querySelector(".fa.fa-power-off").addEventListener("click", function () {
+    socket.emit("disconnect");
+});
 // document.addEventListener("beforeunload unload", function () {
 //     socket.emit("disconnect");
 // });
