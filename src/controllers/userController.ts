@@ -226,6 +226,7 @@ export const updateSettingsController = async (req: Request, res: Response) => {
   try {
     const username = req?.user;
     const options = req.body;
+    console.log(options)
     const response = await userModel.editOptions(username as string, options);
     res.json({ success: true, response: response });
   } catch (error: any) {
