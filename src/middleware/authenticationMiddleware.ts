@@ -8,8 +8,6 @@ export const authenticationMiddleware = (
   next: NextFunction
 ) => {
   try {
-    console.log('authenticationMiddleware');
-    
     const token = req.cookies.jwt;
     if (!token) {
       if (req.url == '/login' || req.url == '/registration') {
@@ -20,8 +18,6 @@ export const authenticationMiddleware = (
         return res.redirect('/login');
       }
     }
-    console.log('token: ', token);
-    
     verify(token, config.jwt.secret as string, (err: any, decoded: any) => {
       if (err && (req.url == '/login' || req.url == '/registration')) {
         req.user = undefined;

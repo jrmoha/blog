@@ -813,14 +813,20 @@ class userModel {
       throw error;
     }
   }
-  async getFeed(username: string): Promise<Post[]> {
+  async getFeed(username: string, page = 0): Promise<Post[]> {
     try {
       const connection = await db.connect();
       let query = `SELECT p.post_id,p.username,p.upload_date,p.update_date,p.post_content `;
       query += `FROM post p `;
-      query += `WHERE p.username IN `;
-      query += `(SELECT followed_username FROM follow WHERE follower_username=$1 AND follow_status=1) OR p.username=$1 `;
-      const { rows } = await connection.query(query, [username]);
+      query += `WHERE  p.username=$1 OR p.username IN `;
+      query += `(SELECT followed_username FROM follow WHERE follower_username=$1 AND follow_status=1) `;
+      query += `ORDER BY p.update_date DESC `;
+      query += `LIMIT $2 OFFSET $3`;
+      const { rows } = await connection.query(query, [
+        username,
+        config.limit_post_per_page,
+        page * config.limit_post_per_page,
+      ]);
       connection.release();
       await addBasicDataToPosts(rows);
       return rows;

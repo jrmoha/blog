@@ -18,9 +18,15 @@ export const createPost = async (req: Request, res: Response) => {
       userModel.addActivity(username, 'You Created A Post'),
     ]);
     if (img_response) {
-      response.single_image = img_response as string;
+      response.single_image = img_response[0].img_src as string;
     }
-    console.log(response);
+    response.likes = [];
+    response.comments = [];
+    response.likes_number = 0;
+    response.comments_number = 0;
+    response.last_update = 'Now';
+    response.user_image = res.locals.user.profile_image;
+    response.images = img_response as string[];
     res.json({ response: response, success: true });
   } catch (err: any) {
     res.json({ message: err.message, status: err.status });

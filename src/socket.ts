@@ -23,10 +23,6 @@ export default function (server: http.Server): Server {
     socketAuthenticationMiddleware(socket, next);
   });
   io.on('connection', (socket) => {
-    console.log(`socket connected ${socket.id}`);
-
-    console.log('decoded socket');
-    console.log(socket.decoded);
     socket.on('join', (): void => {
       socket.join(socket.decoded?.username as string);
     });
@@ -96,6 +92,17 @@ export default function (server: http.Server): Server {
         socket.emit('messages', current_user, result);
       } catch (error: any) {
         socket.emit('error', error.message);
+      }
+    });
+    //may be deleted بس يلا اصل احا يعني
+    socket.on('send-post', async (post) => {
+      const current_user = socket.decoded?.username as string;
+      const receivers: any[] = await userModel.getFollowers(current_user);
+      console.log(receivers[0].follower_username);
+
+      for (let i = 0; i < receivers.length; i++) {
+        const receiver = receivers[i];
+        socket.to(receiver.follower_username).emit('new-post', post);
       }
     });
     socket.on('disconnect', () => {

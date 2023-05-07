@@ -387,7 +387,7 @@ class postModel {
       throw error;
     }
   }
-  async addImages(post_id: number, images: any[]): Promise<string | null> {
+  async addImages(post_id: number, images: any[]): Promise<any[] | null> {
     try {
       if (!images.length) return null;
       const connection = await db.connect();
@@ -399,7 +399,7 @@ class postModel {
       query += ` RETURNING img_src`;
       const { rows } = await connection.query(query);
       connection.release();
-      return rows[0].img_src;
+      return rows;
     } catch (err: any) {
       const error: IError = {
         message: err.message,

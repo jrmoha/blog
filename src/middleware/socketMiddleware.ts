@@ -5,11 +5,27 @@ export const socketAuthenticationMiddleware = async (
   socket: any,
   next: any
 ) => {
+  function getJwtFromCookie(cookie: string) {
+    const parts = cookie.split('; ');
+    for (const part of parts) {
+      const [name, value] = part.split('=');
+      if (name === 'jwt') {
+        return value;
+      }
+    }
+    return null;
+  }
   try {
     // const token = socket.handshake.query.token;
-    const token =
-      socket.request.headers.cookie?.split('=')[2] ||
-      socket.request.headers.cookie?.split('=')[1];
+    // console.log(socket.request.headers.cookie);
+
+    // const token =
+    //   socket.request.headers.cookie?.split('=')[2] ||
+    //   socket.request.headers.cookie?.split('=')[1];
+    //   console.log(`token is ${token}`);
+    const token = getJwtFromCookie(socket.request.headers.cookie);
+    console.log(`token is ${token}`);
+    
     if (!token) {
       return next(new Error('No token provided'));
     }

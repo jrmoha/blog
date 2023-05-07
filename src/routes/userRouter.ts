@@ -18,6 +18,11 @@ const router = Router();
 
 router.get('/', authenticationMiddleware, userController.getFeed);
 router.get(
+  '/api/loadMoreFeed',
+  authenticationMiddleware,
+  userController.loadMoreFeed
+);
+router.get(
   '/activity',
   authenticationMiddleware,
   userController.activityPageController

@@ -350,6 +350,12 @@ if (publishButton) {
                     });
                     parseHashtags(post.querySelector(".feed_content p"));
                 }, 1000);
+
+
+
+
+
+                socket.emit('send-post', data.response);
             } else {
                 console.log(data);
                 window.location.reload();
@@ -511,9 +517,163 @@ window.onload = function () {
     });
 
 };
+const old_height = {
+    height: 0
+};
 
+window.onscroll = async function () {
+    const pageHeight = document.documentElement.scrollHeight;
+    if ((Math.ceil(window.scrollY) + window.innerHeight >= pageHeight) && pageHeight != old_height.height) {
+        old_height.height = pageHeight;
+        await loadMorePosts();
+    }
+};
+async function loadMorePosts() {
+    const feed = document.querySelectorAll(".feed");
+    const lastIndex = parseInt(feed[feed.length - 1].dataset.index);
+
+    //load ones from cookies first
+    const postsArray = document.cookie.replace(/(?:(?:^|.*;\s*)new\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+    const posts = JSON.parse(postsArray);
+    if (posts.length > 0) {
+        while (posts.length > 0) {
+            const post = posts.shift();
+            console.log(post);
+            await create_post(post, 0, [], lastIndex);
+        }
+        document.cookie = `new=${JSON.stringify(posts)};path=/`;
+    }
+
+    console.log("loading more posts");
+
+    const page = (lastIndex / 5);//here too
+    const response = await fetch(`/api/loadMoreFeed?page=${page}`,//here
+        {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        }
+    );
+    const data = await response.json();
+    if (data.success) {
+        const posts = data.response;
+        if (posts.length == 0) {
+            const no_more = document.createElement("div");
+            no_more.classList.add("no-more");
+            no_more.innerHTML = `<h3>No more posts to show</h3>`;
+            document.querySelector(".right_row").appendChild(no_more);
+            old_height.height = document.documentElement.scrollHeight;
+            return;
+        }
+        const liked_posts = data.liked_posts;
+        for (let i = 0; i < liked_posts.length; i++) {
+            liked_posts[i] = parseInt(liked_posts[i]);
+        }
+        posts.forEach(async (post, i) => {
+            await create_post(post, i, liked_posts, lastIndex);
+        });
+    }
+
+}
+async function create_post(post, i, liked_posts, lastIndex) {
+    const postDiv = document.createElement("div");
+    postDiv.classList.add("row");
+    postDiv.classList.add("border-radius");
+    const feedDiv = document.createElement("div");
+    feedDiv.classList.add("feed");
+    feedDiv.dataset.index = lastIndex + i + 1;
+    const feed_title = document.createElement("div");
+    feed_title.classList.add("feed_title");
+    feed_title.innerHTML = `<a href="/users/${post.username}">
+    <img src="images/users/${post.user_image}" alt="" /></a>
+<span><b>
+${post.username}
+    </b> Shared a <a href="/posts/post/${post.post_id}">Post<br>
+        <p style="color: #515365;">
+        ${post.last_update}`;
+    if (post.modified) {
+        feed_title.innerHTML += `<small>modified</small>`;
+    }
+    feed_title.innerHTML += `</p>
+    </a>
+</span>`;
+    const feed_content = document.createElement("div");
+    feed_content.classList.add("feed_content");
+    feed_content.innerHTML = `<p>
+${post.post_content}
+</p>`;
+    //change
+    if (post.images != undefined && post.images.length) {
+        const imagesDiv = document.createElement("div");
+        imagesDiv.classList.add("feed_content_image");
+        imagesDiv.innerHTML = ` <a href="/posts/post/${post.post_id}"><img
+    src="images/posts/${post.single_image.img_src || post.single_image}"
+    alt="" /></a>`;
+        feed_content.appendChild(imagesDiv);
+    }
+    const feed_footer = document.createElement("div");
+    feed_footer.classList.add("feed_footer");
+    const like_ul = document.createElement("ul");
+    like_ul.classList.add("feed_footer_left");
+    if (liked_posts.includes(post.post_id)) {
+        like_ul.innerHTML += `<i class="fa-solid fa-thumbs-up unlike-buttons"
+        data-post_id="${post.post_id}"></i>`;
+    } else {
+        like_ul.innerHTML += `<i class="fa-regular fa-thumbs-up like-buttons"
+        data-post_id="${post.post_id}"></i>`;
+    }
+    like_ul.innerHTML += `<li class="hover-orange selected-orange">${post.likes_number}</li>`;
+    const comment_ul = document.createElement("ul");
+    comment_ul.classList.add("feed_footer_right");
+    comment_ul.innerHTML += `<li>
+        <li class="hover-orange selected-orange">
+            <a href="/posts/post/${post.post_id}" style="color:#515365;">
+        <li class="hover-orange"><i class="fa fa-comments-o"></i>
+            ${post.comments_number} comments
+        </li>
+        </a>
+        </li>
+        `;
+    feed_footer.appendChild(like_ul);
+    feed_footer.appendChild(comment_ul);
+    feedDiv.appendChild(feed_title);
+    feedDiv.appendChild(feed_content);
+    feedDiv.appendChild(feed_footer);
+    postDiv.appendChild(feedDiv);
+    const get_likes_btn = postDiv.querySelector(".hover-orange.selected-orange");
+    get_likes_btn.addEventListener("click", async function () {
+        getLikes(get_likes_btn);
+    });
+    const likeBtn = postDiv.querySelector(".like-buttons");
+    const unlikeBtn = postDiv.querySelector(".unlike-buttons");
+    if (likeBtn) {
+        likeBtn.addEventListener("click", () => {
+            likePost(likeBtn);
+        });
+    }
+    if (unlikeBtn) {
+        unlikeBtn.addEventListener("click", () => {
+            unlikePost(unlikeBtn);
+        });
+    }
+    parseHashtags(feed_content.querySelector(".feed_content p"));
+    document.querySelector(".right_row").appendChild(postDiv);
+}
 function parseHashtags(post) {
     const hashtag_regex = /\B#([a-zA-Z0-9_]+\b)(?!;)/gm;
     post.innerHTML = post.innerHTML.replace(hashtag_regex, `<a class="hashtag" href="/posts/hashtags/$1">#$1</a>`);
-
 }
+
+//change 2
+if (!document.cookie.includes("new")) {
+    document.cookie = "new=[]";
+}
+socket.on("new-post", async (post) => {
+    console.log("new post received");
+    const postsArray = document.cookie.replace(/(?:(?:^|.*;\s*)new\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+    const posts = JSON.parse(postsArray);
+    posts.push(post)
+    console.log(posts);
+    document.cookie = "new=" + JSON.stringify(posts);
+});

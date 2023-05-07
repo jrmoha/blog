@@ -12,6 +12,9 @@ export const getFeed = async (req: Request, res: Response) => {
     const liked_posts: number[] = await postModel.getUserLikedPostsAsArray(
       username as string
     );
+    console.log(res.locals.user);
+
+    res.locals.user.liked_posts = liked_posts;
     res.render('feed', {
       posts: posts,
       liked_posts: liked_posts,
@@ -226,10 +229,23 @@ export const updateSettingsController = async (req: Request, res: Response) => {
   try {
     const username = req?.user;
     const options = req.body;
-    console.log(options)
+    console.log(options);
     const response = await userModel.editOptions(username as string, options);
     res.json({ success: true, response: response });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
+  }
+};
+export const loadMoreFeed = async (req: Request, res: Response) => {
+  try {
+    const username = req?.user as string;
+    const page = parseInt(req.query.page as string);
+    const liked_posts = await postModel.getUserLikedPostsAsArray(username);
+    const posts: Post[] = await userModel.getFeed(username, page);
+    res
+      .status(200)
+      .json({ success: true, response: posts, liked_posts: liked_posts });
+  } catch (error: any) {
+    res.status(500).json({ sucess: false, message: error.message });
   }
 };
