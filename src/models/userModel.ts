@@ -391,29 +391,28 @@ class userModel {
   }
   async changePassword(
     username: string,
-    old_password: string,
     new_password: string
   ): Promise<boolean> {
     try {
-      const error: IError = {
-        message: '',
-        status: 403,
-      };
-      if (old_password === new_password) {
-        error.message = `New Password Can't Be The Same As Old One.`;
-        throw error;
-      }
+      // const error: IError = {
+      //   message: '',
+      //   status: 403,
+      // };
+      // if (old_password === new_password) {
+      //   error.message = `New Password Can't Be The Same As Old One.`;
+      //   throw error;
+      // }
       const connection: PoolClient = await db.connect();
-      const old_password_query = `SELECT password FROM users WHERE username=$1`;
-      const { rows } = await connection.query(old_password_query, [username]);
-      const old_password_match: boolean = await comparePassword(
-        old_password,
-        rows[0].password
-      );
-      if (!old_password_match) {
-        error.message = `This Password Doesn't Match Your Old One.`;
-        throw error;
-      }
+      // const old_password_query = `SELECT password FROM users WHERE username=$1`;
+      // const { rows } = await connection.query(old_password_query, [username]);
+      // const old_password_match: boolean = await comparePassword(
+      //   old_password,
+      //   rows[0].password
+      // );
+      // if (!old_password_match) {
+      //   error.message = `This Password Doesn't Match Your Old One.`;
+      //   throw error;
+      // }
       const hashed_new_password = await hashPassword(new_password);
       const update_query = `UPDATE users SET password=$1 WHERE username=$2`;
       const { rowCount } = await connection.query(update_query, [

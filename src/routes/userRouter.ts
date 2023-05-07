@@ -32,6 +32,11 @@ router.get(
   authenticationMiddleware,
   userController.settingsPageController
 );
+router.get(
+  '/settings/change-password',
+  authenticationMiddleware,
+  userController.chnagePassowrdPageController
+);
 router.get('/api/friends', authenticationMiddleware, userController.friends);
 router.put(
   '/api/editSettings',
@@ -79,5 +84,9 @@ router.delete(
   authenticationMiddleware,
   userController.deleteFollowerController
 );
-
+router.put(
+  '/api/change-password',
+  authenticationMiddleware,
+  userController.changePasswordController
+);
 export default router;

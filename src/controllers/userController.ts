@@ -249,3 +249,23 @@ export const loadMoreFeed = async (req: Request, res: Response) => {
     res.status(500).json({ sucess: false, message: error.message });
   }
 };
+export const chnagePassowrdPageController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    res.render('change-password', { title: 'Change Password' });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+export const changePasswordController = async (req: Request, res: Response) => {
+  try {
+    const username = req?.user as string;
+    const { password } = req.body;
+    const response = await userModel.changePassword(username, password);
+    res.json({ success: true, response: response });
+  } catch (error: any) {
+    res.status(500).json({ sucess: false, message: error.message });
+  }
+};

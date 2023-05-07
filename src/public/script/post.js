@@ -520,12 +520,13 @@ window.onload = function () {
 const old_height = {
     height: 0
 };
-
 window.onscroll = async function () {
     const pageHeight = document.documentElement.scrollHeight;
     if ((Math.ceil(window.scrollY) + window.innerHeight >= pageHeight) && pageHeight != old_height.height) {
-        old_height.height = pageHeight;
-        await loadMorePosts();
+        if (document.location.pathname === "/") {
+            old_height.height = pageHeight;
+            await loadMorePosts();
+        }
     }
 };
 async function loadMorePosts() {

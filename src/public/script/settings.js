@@ -4,8 +4,8 @@ const show_last_seen = settings_content.querySelectorAll('input')[0];
 const gender = settings_content.querySelector('select');
 const show_status = settings_content.querySelectorAll('input')[1];
 const phone = settings_content.querySelectorAll('input')[2];
-const address = settings_content.querySelectorAll('input')[3];
-const bio = settings_content.querySelectorAll('input')[4];
+const bio = settings_content.querySelectorAll('input')[3];
+const address = settings_content.querySelectorAll('input')[4];
 
 const alertDiv = document.querySelector('.alert');
 

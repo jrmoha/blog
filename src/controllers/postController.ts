@@ -191,7 +191,8 @@ export const getPostsByHashtag = async (req: Request, res: Response) => {
   try {
     const usernmae: string = req?.user as string;
     const hashtag: string = req.params.hashtag;
-    const response: Post[] = await postModel.getPostsByHashtag(hashtag);
+    const page: number = parseInt(req.query.page as string) || 0;
+    const response: Post[] = await postModel.getPostsByHashtag(hashtag, page);
     const liked_posts: number[] = await postModel.getUserLikedPostsAsArray(
       usernmae
     );
@@ -199,6 +200,8 @@ export const getPostsByHashtag = async (req: Request, res: Response) => {
     res.locals.posts = response;
     res.locals.liked_posts = liked_posts;
     res.locals.title = `#${hashtag}`;
+    console.log(`#${hashtag}`);
+    console.log(response);
     res.render('feed');
   } catch (err: any) {
     res.json({ message: err.message, status: err.status });

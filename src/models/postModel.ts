@@ -271,13 +271,17 @@ class postModel {
       throw error;
     }
   }
-  async getPostsByHashtag(hashtag: string): Promise<Post[]> {
+  async getPostsByHashtag(hashtag: string, offset:number): Promise<Post[]> {
     try {
       const connection = await db.connect();
-      const query = `SELECT * FROM post WHERE post_id IN (SELECT post_id FROM post_tags WHERE tag LIKE '${hashtag}%')`;
-      const result = await connection.query(query);
+      let query = `SELECT * FROM post WHERE post_id IN (SELECT post_id FROM post_tags WHERE tag LIKE '${hashtag}%')`;
+      query += `ORDER BY update_date DESC LIMIT $1 OFFSET $2`;
+      const { rows } = await connection.query(query, [
+        config.limit_post_per_page,
+        offset * config.limit_post_per_page,
+      ]);
       connection.release();
-      return result.rows;
+      return rows;
     } catch (err: any) {
       const error: IError = {
         message: err.message,
