@@ -94,7 +94,6 @@ export default function (server: http.Server): Server {
         socket.emit('error', error.message);
       }
     });
-    //may be deleted بس يلا اصل احا يعني
     socket.on('send-post', async (post) => {
       const current_user = socket.decoded?.username as string;
       const receivers: any[] = await userModel.getFollowers(current_user);

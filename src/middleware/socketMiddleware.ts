@@ -1,20 +1,11 @@
 import { verify } from 'jsonwebtoken';
 import config from '../utils/config';
+import { getJwtFromCookie } from '../utils/functions';
 
 export const socketAuthenticationMiddleware = async (
   socket: any,
   next: any
 ) => {
-  function getJwtFromCookie(cookie: string) {
-    const parts = cookie.split('; ');
-    for (const part of parts) {
-      const [name, value] = part.split('=');
-      if (name === 'jwt') {
-        return value;
-      }
-    }
-    return null;
-  }
   try {
     // const token = socket.handshake.query.token;
     // console.log(socket.request.headers.cookie);
@@ -25,7 +16,7 @@ export const socketAuthenticationMiddleware = async (
     //   console.log(`token is ${token}`);
     const token = getJwtFromCookie(socket.request.headers.cookie);
     console.log(`token is ${token}`);
-    
+
     if (!token) {
       return next(new Error('No token provided'));
     }

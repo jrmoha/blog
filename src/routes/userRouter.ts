@@ -1,92 +1,82 @@
 import { Router } from 'express';
 import * as userController from '../controllers/userController';
 import { authenticationMiddleware } from '../middleware/authenticationMiddleware';
+import upload from '../middleware/userMulter';
 
-import multer from 'multer';
-import path from 'path';
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const path = __dirname + '/../public/images/users';
-    return cb(null, path);
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${new Date().getTime() + path.extname(file.originalname)}`);
-  },
-});
-const upload = multer({ storage: storage, limits: { fieldSize: 800000 } });
 const router = Router();
 
-router.get('/', authenticationMiddleware, userController.getFeed);
-router.get(
-  '/api/loadMoreFeed',
-  authenticationMiddleware,
-  userController.loadMoreFeed
-);
-router.get(
-  '/activity',
-  authenticationMiddleware,
-  userController.activityPageController
-);
-router.get(
-  '/settings',
-  authenticationMiddleware,
-  userController.settingsPageController
-);
-router.get(
-  '/settings/change-password',
-  authenticationMiddleware,
-  userController.chnagePassowrdPageController
-);
-router.get('/api/friends', authenticationMiddleware, userController.friends);
-router.put(
-  '/api/editSettings',
-  authenticationMiddleware,
-  userController.updateSettingsController
-);
-router.post(
-  '/api/follow/:username',
-  authenticationMiddleware,
-  userController.followController
-);
-router.delete(
-  '/api/unfollow/:username',
-  authenticationMiddleware,
-  userController.unfollowController
-);
-router.delete(
-  '/api/delete/photo',
-  authenticationMiddleware,
-  userController.deleteProfilePictureController
-);
-router.post(
-  '/api/image/change',
-  authenticationMiddleware,
-  upload.single('image'),
-  userController.updateProfilePictureController
-);
-router.get(
-  '/users/:username/followers',
-  authenticationMiddleware,
-  userController.followersPageController
-);
-router.get(
-  '/users/:username/followings',
-  authenticationMiddleware,
-  userController.followingsPageController
-);
-router.get(
-  '/users/:username/photos',
-  authenticationMiddleware,
-  userController.photosPageController
-);
-router.delete(
-  '/api/delete/:username',
-  authenticationMiddleware,
-  userController.deleteFollowerController
-);
-router.put(
-  '/api/change-password',
-  authenticationMiddleware,
-  userController.changePasswordController
-);
+router
+  .get('/', authenticationMiddleware, userController.getFeed)
+  .get(
+    '/api/loadMoreFeed',
+    authenticationMiddleware,
+    userController.loadMoreFeed
+  )
+  .get(
+    '/activity',
+    authenticationMiddleware,
+    userController.activityPageController
+  )
+  .get(
+    '/settings',
+    authenticationMiddleware,
+    userController.settingsPageController
+  )
+  .get(
+    '/settings/change-password',
+    authenticationMiddleware,
+    userController.chnagePassowrdPageController
+  )
+  .get('/api/friends', authenticationMiddleware, userController.friends)
+  .put(
+    '/api/editSettings',
+    authenticationMiddleware,
+    userController.updateSettingsController
+  )
+  .post(
+    '/api/follow/:username',
+    authenticationMiddleware,
+    userController.followController
+  )
+  .delete(
+    '/api/unfollow/:username',
+    authenticationMiddleware,
+    userController.unfollowController
+  )
+  .delete(
+    '/api/delete/photo',
+    authenticationMiddleware,
+    userController.deleteProfilePictureController
+  )
+  .post(
+    '/api/image/change',
+    authenticationMiddleware,
+    upload.single('image'),
+    userController.updateProfilePictureController
+  )
+  .get(
+    '/users/:username/followers',
+    authenticationMiddleware,
+    userController.followersPageController
+  )
+  .get(
+    '/users/:username/followings',
+    authenticationMiddleware,
+    userController.followingsPageController
+  )
+  .get(
+    '/users/:username/photos',
+    authenticationMiddleware,
+    userController.photosPageController
+  )
+  .delete(
+    '/api/delete/:username',
+    authenticationMiddleware,
+    userController.deleteFollowerController
+  )
+  .put(
+    '/api/change-password',
+    authenticationMiddleware,
+    userController.changePasswordController
+  );
 export default router;

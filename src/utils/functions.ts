@@ -106,3 +106,13 @@ export const decryptMessage = (encryptedMessage: string): string => {
   );
   return decryptedMessage.toString(CryptoJS.enc.Utf8);
 };
+export const getJwtFromCookie = function (cookie: string) {
+  const parts = cookie.split('; ');
+  for (const part of parts) {
+    const [name, value] = part.split('=');
+    if (name === 'jwt') {
+      return value;
+    }
+  }
+  return null;
+};
