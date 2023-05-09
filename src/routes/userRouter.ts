@@ -8,6 +8,11 @@ const router = Router();
 router
   .get('/', authenticationMiddleware, userController.getFeed)
   .get(
+    '/users/:username',
+    authenticationMiddleware,
+    userController.profilePageController
+  )
+  .get(
     '/api/loadMoreFeed',
     authenticationMiddleware,
     userController.loadMoreFeed
@@ -25,7 +30,7 @@ router
   .get(
     '/settings/change-password',
     authenticationMiddleware,
-    userController.chnagePassowrdPageController
+    userController.changePassowrdPageController
   )
   .get('/api/friends', authenticationMiddleware, userController.friends)
   .put(

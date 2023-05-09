@@ -79,9 +79,16 @@ class userModel {
   async getUserByUsername(username: string): Promise<User> {
     try {
       const connection: PoolClient = await db.connect();
-      const query = `SELECT username,email,first_name,last_name,birth_date FROM users WHERE username=$1`;
+      let query = `SELECT username,first_name,last_name,(SELECT MAX (img_src) AS "profile_image" FROM user_image WHERE username=$1)`;
+      query += `,(SELECT COUNT(follower_username) AS "followings_number" FROM follow WHERE follower_username=$1),`;
+      query += `(SELECT COUNT(followed_username) AS "followers_number" FROM follow WHERE followed_username=$1),`;
+      query += `(SELECT bio FROM options WHERE username=$1) `;
+      query += `FROM users WHERE username=$1`;
       const { rows } = await connection.query(query, [username]);
       connection.release();
+      if (rows[0].profile_image == null) {
+        rows[0].profile_image = config.default_profile_image;
+      }
       return rows[0];
     } catch (err: any) {
       const error: IError = {

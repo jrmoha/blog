@@ -33,11 +33,7 @@ class postModel {
       const query = `SELECT * FROM post WHERE username=$1`;
       const { rows } = await connection.query(query, [username]);
       connection.release();
-      if (rows.length) {
-        return rows;
-      } else {
-        throw { message: 'Posts Not Found', status: 404 };
-      }
+      return rows;
     } catch (err: any) {
       const error: IError = {
         message: err.message,
@@ -271,7 +267,7 @@ class postModel {
       throw error;
     }
   }
-  async getPostsByHashtag(hashtag: string, offset:number): Promise<Post[]> {
+  async getPostsByHashtag(hashtag: string, offset: number): Promise<Post[]> {
     try {
       const connection = await db.connect();
       let query = `SELECT * FROM post WHERE post_id IN (SELECT post_id FROM post_tags WHERE tag LIKE '${hashtag}%')`;
@@ -550,6 +546,28 @@ class postModel {
       const { rowCount } = await connection.query(query, [post_id, username]);
       connection.release();
       return rowCount == 1;
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 500,
+      };
+      throw error;
+    }
+  }
+  async getLastestImages(username: string): Promise<string[]> {
+    try {
+      const connection = await db.connect();
+      let query = `SELECT pi.img_src FROM post_images pi `;
+      query += `JOIN post p ON pi.post_id=p.post_id `;
+      query += `WHERE p.username=$1 `;
+      query += `ORDER BY p.update_date `;
+      query += `LIMIT $2`;
+      const { rows } = await connection.query(query, [
+        username,
+        config.limit_images_per_profile,
+      ]);
+      connection.release();
+      return rows.map((row) => row.img_src);
     } catch (err: any) {
       const error: IError = {
         message: err.message,

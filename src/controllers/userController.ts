@@ -5,6 +5,8 @@ import postModel from '../models/postModel';
 import jwt from 'jsonwebtoken';
 import config from '../utils/config';
 import Activity from '../types/activity_type';
+import User from '../types/user_type';
+import { addBasicDataToPosts } from '../utils/functions';
 export const getFeed = async (req: Request, res: Response) => {
   try {
     const username = req?.user;
@@ -12,12 +14,11 @@ export const getFeed = async (req: Request, res: Response) => {
     const liked_posts: number[] = await postModel.getUserLikedPostsAsArray(
       username as string
     );
-    console.log(res.locals.user);
-
-    res.locals.user.liked_posts = liked_posts;
+    console.log(liked_posts);
+    res.locals.liked_posts = liked_posts;
     res.render('feed', {
       posts: posts,
-      liked_posts: liked_posts,
+      //liked_posts: res.locals.user.liked_posts,
       title: 'Feed',
     });
   } catch (error: any) {
@@ -249,7 +250,7 @@ export const loadMoreFeed = async (req: Request, res: Response) => {
     res.status(500).json({ sucess: false, message: error.message });
   }
 };
-export const chnagePassowrdPageController = async (
+export const changePassowrdPageController = async (
   req: Request,
   res: Response
 ) => {
@@ -265,6 +266,39 @@ export const changePasswordController = async (req: Request, res: Response) => {
     const { password } = req.body;
     const response = await userModel.changePassword(username, password);
     res.json({ success: true, response: response });
+  } catch (error: any) {
+    res.status(500).json({ sucess: false, message: error.message });
+  }
+};
+export const profilePageController = async (req: Request, res: Response) => {
+  try {
+    const current_username: string = req?.user as string;
+    const profile_username: string = req.params.username;
+
+    if (profile_username === current_username) {
+      res.locals.isOwner = true;
+    } else {
+      res.locals.isOwner = false;
+      res.locals.follow_status = await userModel.isFollowing(
+        current_username,
+        profile_username
+      );
+    }
+    const prom = await Promise.all([
+      userModel.getUserByUsername(profile_username),
+      postModel.getPosts(profile_username),
+      postModel.getLastestImages(profile_username),
+    ]);
+    const profile: User = prom[0];
+    const posts: Post[] = prom[1];
+    const lastest_posts_images: string[] = prom[2];
+    await addBasicDataToPosts(posts);
+    res.locals.profile = profile;
+    res.locals.posts = posts;
+    res.locals.lastest_posts_images = lastest_posts_images;
+    res.render('profile', {
+      title: profile.first_name + ' ' + profile.last_name,
+    });
   } catch (error: any) {
     res.status(500).json({ sucess: false, message: error.message });
   }

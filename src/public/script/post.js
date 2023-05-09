@@ -547,7 +547,7 @@ async function loadMorePosts() {
 
     console.log("loading more posts");
 
-    const page = (lastIndex / 5);//here too
+    const page = (lastIndex / 10);//here too
     const response = await fetch(`/api/loadMoreFeed?page=${page}`,//here
         {
             method: "GET",
@@ -568,9 +568,6 @@ async function loadMorePosts() {
             return;
         }
         const liked_posts = data.liked_posts;
-        for (let i = 0; i < liked_posts.length; i++) {
-            liked_posts[i] = parseInt(liked_posts[i]);
-        }
         posts.forEach(async (post, i) => {
             await create_post(post, i, liked_posts, lastIndex);
         });
