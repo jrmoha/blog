@@ -209,8 +209,14 @@ export const getPostsByHashtag = async (req: Request, res: Response) => {
 };
 export const searchForAPost = async (req: Request, res: Response) => {
   try {
+    const current_username: string = (req?.user as string) || 'jrmoha';
     const query = req.query.q as string;
-    const response: Post[] = await postModel.getPostsBySearch(query);
+    const page = parseInt(req.query.page as string) || 0;
+    const response: Post[] = await postModel.getPostsBySearch(
+      current_username,
+      query,
+      page
+    );
     if (response.length) {
       res.json(response);
     } else {
