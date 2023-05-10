@@ -13,6 +13,11 @@ router
     userController.profilePageController
   )
   .get(
+    '/search',
+    // authenticationMiddleware,
+    userController.searchForAUser
+  )
+  .get(
     '/api/loadMoreFeed',
     authenticationMiddleware,
     userController.loadMoreFeed

@@ -43,6 +43,10 @@ router
     authenticationMiddleware,
     postController.getPostsByHashtag
   )
-  .get('/trending', authenticationMiddleware, postController.trendingPosts);
-
+  .get('/trending', authenticationMiddleware, postController.trendingPosts)
+  .get(
+    '/search',
+    // authenticationMiddleware,
+    postController.searchForAPost
+  );
 export default router;

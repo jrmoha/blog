@@ -223,7 +223,7 @@ class userModel {
       throw error;
     }
   }
-  async search(username: string, search_title: string): Promise<boolean> {
+  async insert_search(username: string, search_title: string): Promise<boolean> {
     try {
       const connection: PoolClient = await db.connect();
       const query = `INSERT INTO user_search(username,search) VALUES ($1,$2)`;
@@ -721,7 +721,7 @@ class userModel {
         profile_username,
       ]);
       connection.release();
-      return rows.length>0?rows[0].follow_status:null;
+      return rows.length > 0 ? rows[0].follow_status : null;
     } catch (err: any) {
       const error: IError = {
         message: err.message,
@@ -877,6 +877,39 @@ class userModel {
       throw error;
     }
   }
+  async searchUserByUsernameOrFullName(
+    current_username: string,
+    search_query: string,
+    page: number 
+  ): Promise<User[]> {
+    try {
+      const connection = await db.connect();
+      let query = ` SELECT u.username, u.first_name || ' ' || u.last_name AS "full_name",`;
+      query += `(SELECT MAX(img_src) AS "profile_image" FROM user_image WHERE username=u.username),`;
+      query += `(SELECT follow_status FROM follow WHERE followed_username=u.username AND follower_username=$1) `;
+      query += `FROM users u `;
+      query += `WHERE u.username LIKE $2 OR (u.first_name || ' ' || u.last_name) LIKE $2 `;
+      query += `LIMIT $3 OFFSET $4`;
+      const { rows } = await connection.query(query, [
+        current_username,
+        `%${search_query}%`,
+        config.limit_user_per_page,
+        page * config.limit_user_per_page,
+      ]);
+      connection.release();
+      rows.forEach((row: any) => {
+        if (!row.profile_image)
+          row.profile_image = config.default_profile_image;
+        if (row.username === current_username) row.follow_status = 0;
+      });
+      return rows;
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 400,
+      };
+      throw error;
+    }
+  }
 }
-
 export default new userModel();
