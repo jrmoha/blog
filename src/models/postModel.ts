@@ -460,7 +460,6 @@ class postModel {
       //   delete row.upload_date;
       //   delete row.update_date;
       // }
-      await addBasicDataToPosts(rows);
       return rows;
     } catch (err: any) {
       const error: IError = {

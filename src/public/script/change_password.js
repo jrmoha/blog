@@ -1,6 +1,7 @@
 const change_password_btn = document.querySelector('button[name="change-password-btn"]');
 if (change_password_btn) {
     change_password_btn.addEventListener('click', async function () {
+        change_password_btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
         change_password_btn.setAttribute('disabled', true);
         alertDiv.setAttribute('hidden', true);
         alertDiv.classList.remove('success');
@@ -32,6 +33,7 @@ if (change_password_btn) {
         const result = await response.json();
         alertDiv.removeAttribute('hidden');
         if (result.success) {
+            change_password_btn.innerHTML = 'Confirm';
             alertDiv.classList.add('success');
             alertDiv.textContent = 'Password changed successfully';
         }

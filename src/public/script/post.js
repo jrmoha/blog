@@ -181,14 +181,24 @@ async function follow_person(btn, username) {
     });
     const data = await response.json();
     if (data.success) {
-        const unfollow_button = document.createElement('button');
-        unfollow_button.textContent = "Unfollow";
-        unfollow_button.classList.add('unfollow_button');
-        unfollow_button.dataset.username = username;
-        btn.replaceWith(unfollow_button);
-        unfollow_button.addEventListener('click', async function () {
-            unfollow_person(unfollow_button, username);
-        });
+        if (btn.classList.contains('follow_button')) {
+            const unfollow_button = document.createElement('button');
+            unfollow_button.textContent = "Unfollow";
+            unfollow_button.classList.add('unfollow_button');
+            btn.replaceWith(unfollow_button);
+            unfollow_button.addEventListener('click', async function () {
+                await unfollow_person(unfollow_button, username);
+            });
+        } else if (btn.classList.contains('fa-user-plus')) {
+            const unfollow_button = document.createElement('i');
+            unfollow_button.classList.add('fa-solid');
+            unfollow_button.classList.add('fa-user-minus');
+            btn.replaceWith(unfollow_button);
+            unfollow_button.addEventListener('click', async function () {
+                await unfollow_person(unfollow_button, username);
+            }
+            );
+        }
     }
 
 }
@@ -201,14 +211,23 @@ async function unfollow_person(btn, username) {
     });
     const data = await response.json();
     if (data.success) {
-        const follow_button = document.createElement('button');
-        follow_button.textContent = "Follow";
-        follow_button.classList.add('follow_button');
-        follow_button.dataset.username = username;
-        btn.replaceWith(follow_button);
-        follow_button.addEventListener('click', async function () {
-            follow_person(follow_button, username);
-        });
+        if (btn.classList.contains('unfollow_button')) {
+            const follow_button = document.createElement('button');
+            follow_button.textContent = "Follow";
+            follow_button.classList.add('follow_button');
+            btn.replaceWith(follow_button);
+            follow_button.addEventListener('click', async function () {
+                await follow_person(follow_button, username);
+            });
+        } else if (btn.classList.contains('fa-user-minus')) {
+            const follow_button = document.createElement('i');
+            follow_button.classList.add('fa-solid');
+            follow_button.classList.add('fa-user-plus');
+            btn.replaceWith(follow_button);
+            follow_button.addEventListener('click', async function () {
+                await follow_person(follow_button, username);
+            });
+        }
     }
 }
 
@@ -527,9 +546,25 @@ window.onscroll = async function () {
             old_height.height = pageHeight;
             await loadMorePosts();
         }
+    } else {
     }
 };
 async function loadMorePosts() {
+    const skeleton = document.createElement("div");
+    skeleton.classList.add("skeleton");
+    // skeleton.innerHTML = `
+    // <div class="skeleton-header">
+    //     <div class="skeleton-avatar"></div>
+    //     <div class="skeleton-name"></div>
+    // </div>
+    // <div class="skeleton-content"></div>
+    // <div class="skeleton-footer">
+    //     <div class="skeleton-footer-item"></div>
+    //     </div>
+    // `;
+    const right_row = document.querySelector(".right_row");
+    right_row.appendChild(skeleton);
+
     const feed = document.querySelectorAll(".feed");
     const lastIndex = parseInt(feed[feed.length - 1].dataset.index);
 
@@ -558,6 +593,7 @@ async function loadMorePosts() {
     );
     const data = await response.json();
     if (data.success) {
+        skeleton.remove();
         const posts = data.response;
         if (posts.length == 0) {
             const no_more = document.createElement("div");

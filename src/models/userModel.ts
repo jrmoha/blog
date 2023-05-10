@@ -700,10 +700,28 @@ class userModel {
       const query = `SELECT follow_status FROM follow WHERE follower_username=$1 AND followed_username=$2 AND follow_status=1`;
       const { rows } = await connection.query(query, [follower, followed]);
       connection.release();
-      console.log('isFollowing');
-
-      console.log(rows);
       return rows.length > 0 ? rows[0].follow_status : null;
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 400,
+      };
+      throw error;
+    }
+  }
+  async follow_status(
+    current_username: string,
+    profile_username: string
+  ): Promise<number | null> {
+    try {
+      const connection = await db.connect();
+      const query = `SELECT follow_status FROM follow WHERE follower_username=$1 AND followed_username=$2`;
+      const { rows } = await connection.query(query, [
+        current_username,
+        profile_username,
+      ]);
+      connection.release();
+      return rows.length>0?rows[0].follow_status:null;
     } catch (err: any) {
       const error: IError = {
         message: err.message,

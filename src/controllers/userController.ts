@@ -279,7 +279,7 @@ export const profilePageController = async (req: Request, res: Response) => {
       res.locals.isOwner = true;
     } else {
       res.locals.isOwner = false;
-      res.locals.follow_status = await userModel.isFollowing(
+      res.locals.follow_status = await userModel.follow_status(
         current_username,
         profile_username
       );
@@ -300,6 +300,6 @@ export const profilePageController = async (req: Request, res: Response) => {
       title: profile.first_name + ' ' + profile.last_name,
     });
   } catch (error: any) {
-    res.status(500).json({ sucess: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };

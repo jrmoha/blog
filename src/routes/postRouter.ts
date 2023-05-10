@@ -42,6 +42,7 @@ router
     '/hashtags/:hashtag',
     authenticationMiddleware,
     postController.getPostsByHashtag
-  );
+  )
+  .get('/trending', authenticationMiddleware, postController.trendingPosts);
 
 export default router;

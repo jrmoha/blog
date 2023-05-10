@@ -190,7 +190,7 @@ export const viewPost = async (req: Request, res: Response) => {
 export const getPostsByHashtag = async (req: Request, res: Response) => {
   try {
     const usernmae: string = req?.user as string;
-    const hashtag: string = req.params.hashtag;
+    const hashtag: string = req.params.hashtag.toLowerCase();
     const page: number = parseInt(req.query.page as string) || 0;
     const response: Post[] = await postModel.getPostsByHashtag(hashtag, page);
     const liked_posts: number[] = await postModel.getUserLikedPostsAsArray(
@@ -240,5 +240,18 @@ export const getLikes = async (req: Request, res: Response) => {
     res.json(response);
   } catch (error: any) {
     res.json({ message: error.message, status: error.status });
+  }
+};
+export const trendingPosts = async (req: Request, res: Response) => {
+  try {
+    const posts: Post[] = await postModel.trendingByViews();
+    await addBasicDataToPosts(posts);
+    res.locals.posts = posts;
+    res.locals.liked_posts = await postModel.getUserLikedPostsAsArray(
+      req?.user as string
+    );
+    res.render('trending', { title: 'Trending' });
+  } catch (error: any) {
+    res.status(500).json({ sucess: false, message: error.message });
   }
 };

@@ -20,3 +20,24 @@ $("#change-profile").click(function () {
     }
     input.click();
 });
+const profile_buttons = document.querySelectorAll(".profile_buttons i");
+if (profile_buttons.length) {
+    const message_button = profile_buttons[0];
+    const follow_button = profile_buttons[1];
+    if (message_button) {
+        message_button.addEventListener("click", async function () {
+            const username = this.closest(".left_row_profile").dataset.username;
+            await openChatBox(username);
+        });
+    }
+    if (follow_button) {
+        follow_button.addEventListener("click", async function () {
+            const username = this.closest(".left_row_profile").dataset.username;
+            if (this.classList.contains("fa-user-minus")) {
+                await unfollow_person(profile_buttons[1], username);
+            } else {
+                await follow_person(profile_buttons[1], username);
+            }
+        });
+    }
+}

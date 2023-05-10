@@ -20,6 +20,7 @@ const old_data = {
 
 if (updateBtn) {
     updateBtn.addEventListener('click', async function () {
+        updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
         alertDiv.setAttribute('hidden', true);
         alertDiv.classList.remove('success');
         alertDiv.classList.remove('error');
@@ -53,6 +54,7 @@ if (updateBtn) {
         const result = await response.json();
         alertDiv.removeAttribute('hidden');
         if (result.success) {
+            updateBtn.innerHTML = 'Save Profile';
             Object.assign(old_data, data);
             alertDiv.classList.add('success');
             alertDiv.textContent = 'Settings updated successfully';
