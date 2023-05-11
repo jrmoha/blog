@@ -211,19 +211,19 @@ export const searchForAPost = async (req: Request, res: Response) => {
   try {
     const current_username: string = (req?.user as string) || 'jrmoha';
     const query = req.query.q as string;
-    const page = parseInt(req.query.page as string) || 0;
+    const page = parseInt(req.query.page as string) || 1;
     const response: Post[] = await postModel.getPostsBySearch(
       current_username,
       query,
       page
     );
     if (response.length) {
-      res.json(response);
+      res.json({ success: true, posts: response });
     } else {
-      res.json({ message: 'No Posts Found' });
+      res.json({ success: true, message: 'No Posts Found' });
     }
   } catch (err: any) {
-    res.json({ message: err.message, status: err.status });
+    res.json({ success: false, message: err.message, status: err.status });
   }
 };
 export const trendingTags = async (_req: Request, res: Response) => {

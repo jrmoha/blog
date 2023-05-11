@@ -406,6 +406,8 @@ document.addEventListener("keypress", function (e) {
     if (e.key === "Enter") {
         if (document.activeElement.id === "comment") {
             add_comment();
+        } else if (document.activeElement.name === "searchInput") {
+            search();
         }
     }
 });

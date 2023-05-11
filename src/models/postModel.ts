@@ -373,12 +373,12 @@ class postModel {
   }
   async getPostsBySearch(
     current_username: string,
-    query: string,
-    page: number
+    q: string,
+    page = 1
   ): Promise<Post[]> {
     try {
       const connection = await db.connect();
-      let query = `SELECT p.post_content,p.update_date,p.upload_date,p.username,`;
+      let query = `SELECT p.post_id,p.post_content,p.update_date,p.upload_date,p.username,`;
       query += `(SELECT first_name||' '||last_name AS "full_name" FROM users WHERE username=p.username),`;
       query += `(SELECT follow_status FROM follow WHERE followed_username=p.username AND follower_username=$1) `;
       query += `FROM post p `;
@@ -386,9 +386,9 @@ class postModel {
       query += `ORDER BY p.update_date DESC LIMIT $3 OFFSET $4`;
       const { rows } = await connection.query(query, [
         current_username,
-        `%${query}%`,
+        `%${q}%`,
         config.limit_post_per_page,
-        page * config.limit_post_per_page,
+        (page - 1) * config.limit_post_per_page,
       ]);
       connection.release();
       return rows;

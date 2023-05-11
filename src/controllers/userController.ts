@@ -303,11 +303,30 @@ export const profilePageController = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-export const searchForAUser = async (req: Request, res: Response) => {// 
+export const searchPageController = async (req: Request, res: Response) => {
+  try {
+    const username = req?.user as string;
+    const query = req.query.q as string;
+    const users: User[] = await userModel.searchUserByUsernameOrFullName(
+      username,
+      query
+    );
+    res.locals.users = users;
+    const posts: Post[] = await postModel.getPostsBySearch(username, query);
+    await addBasicDataToPosts(posts);
+    res.locals.posts = posts;
+    res.locals.liked_posts = await postModel.getUserLikedPostsAsArray(username);
+    res.render('search', { title: 'Search' });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const searchForAUser = async (req: Request, res: Response) => {
   try {
     const username = (req?.user as string) || 'jrmoha';
     const query = req.query.q as string;
-    const page = parseInt(req.query.page as string, 10) || 0;
+    const page = parseInt(req.query.page as string, 10) || 1;
     if (!query) return res.json({ success: false, response: [] });
     const users = await userModel.searchUserByUsernameOrFullName(
       username,

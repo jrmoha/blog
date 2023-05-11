@@ -223,7 +223,10 @@ class userModel {
       throw error;
     }
   }
-  async insert_search(username: string, search_title: string): Promise<boolean> {
+  async insert_search(
+    username: string,
+    search_title: string
+  ): Promise<boolean> {
     try {
       const connection: PoolClient = await db.connect();
       const query = `INSERT INTO user_search(username,search) VALUES ($1,$2)`;
@@ -880,7 +883,7 @@ class userModel {
   async searchUserByUsernameOrFullName(
     current_username: string,
     search_query: string,
-    page: number 
+    page=1
   ): Promise<User[]> {
     try {
       const connection = await db.connect();
@@ -894,7 +897,7 @@ class userModel {
         current_username,
         `%${search_query}%`,
         config.limit_user_per_page,
-        page * config.limit_user_per_page,
+        (page - 1) * config.limit_user_per_page,
       ]);
       connection.release();
       rows.forEach((row: any) => {
