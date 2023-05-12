@@ -59,63 +59,64 @@ async function getLikes(btn) {
 
     });
     const likes = await response.json();
-    console.log(likes);
+    console.log(likes.length);
+    if (likes.length > 0) {
+        btn.innerText = likes.length;
+        for (const like of likes) {
+            const likeItem = document.createElement("li");
+            likeItem.style.display = "flex";
+            likeItem.style.flexDirection = "row";
+            likeItem.style.justifyContent = "between";
+            const name_image_div = document.createElement('div');
+            name_image_div.classList.add('row_contain');
 
+            const img_element = document.createElement('img');
+            img_element.setAttribute('src', `images/users/${like.image}`)
+            name_image_div.appendChild(img_element)
 
-    // const likes = ["John", "Jane", "Bob", "Sarah", "John", "Jane", "Bob", "Sarah", "John", "Jane", "Bob", "Sarah", "John", "Jane", "Bob", "Sarah", "John", "Jane", "Bob", "Sarah"];
-    for (const like of likes) {
-        const likeItem = document.createElement("li");
-        likeItem.style.display = "flex";
-        likeItem.style.flexDirection = "row";
-        likeItem.style.justifyContent = "between";
-        const name_image_div = document.createElement('div');
-        name_image_div.classList.add('row_contain');
+            const name_elemt = document.createElement('a');
+            name_elemt.textContent = like.username;
+            name_elemt.href = `/users/${like.username}`
+            name_elemt.style.color = "black"
+            name_image_div.appendChild(name_elemt);
 
-        const img_element = document.createElement('img');
-        img_element.setAttribute('src', `images/users/${like.image}`)
-        name_image_div.appendChild(img_element)
+            likeItem.appendChild(name_image_div);
 
-        const name_elemt = document.createElement('a');
-        name_elemt.textContent = like.username;
-        name_elemt.href = `/users/${like.username}`
-        name_elemt.style.color = "black"
-        name_image_div.appendChild(name_elemt);
+            const follow_button = document.createElement('button');
+            if (like.follow_status == 1) {
+                console.log(like.username);
+                follow_button.textContent = "Unfollow";
+                follow_button.classList.add('unfollow_button');
+                follow_button.addEventListener('click', async function () {
+                    unfollow_person(follow_button, like.username);
+                });
+                likeItem.appendChild(follow_button);
+            } if (like.follow_status == null) {
+                follow_button.textContent = "Follow";
+                follow_button.classList.add('follow_button');
+                follow_button.addEventListener('click', async function () {
+                    follow_person(follow_button, like.username);
+                });
+                likeItem.appendChild(follow_button);
+            }
+            likesList.appendChild(likeItem);
+            const hr = document.createElement('hr');
+            hr.style.width = "75%"
+            hr.style.color = "brown"
+            hr.style.margin = "auto"
+            likesList.appendChild(hr)
+        };
 
-        likeItem.appendChild(name_image_div);
+        // append likes list to likes list container
+        likesListContainer.appendChild(likesList);
 
-        const follow_button = document.createElement('button');
-        if (like.follow_status == 1) {
-            console.log(like.username);
-            follow_button.textContent = "Unfollow";
-            follow_button.classList.add('unfollow_button');
-            follow_button.addEventListener('click', async function () {
-                unfollow_person(follow_button, like.username);
-            });
-            likeItem.appendChild(follow_button);
-        } if (like.follow_status == null) {
-            follow_button.textContent = "Follow";
-            follow_button.classList.add('follow_button');
-            follow_button.addEventListener('click', async function () {
-                follow_person(follow_button, like.username);
-            });
-            likeItem.appendChild(follow_button);
-        }
-        likesList.appendChild(likeItem);
-        const hr = document.createElement('hr');
-        hr.style.width = "75%"
-        hr.style.color = "brown"
-        hr.style.margin = "auto"
-        likesList.appendChild(hr)
-    };
+        // append likes list container to blur container
+        blurContainer.appendChild(likesListContainer);
 
-    // append likes list to likes list container
-    likesListContainer.appendChild(likesList);
-
-    // append likes list container to blur container
-    blurContainer.appendChild(likesListContainer);
-
-    // append blur container to body
-    document.body.appendChild(blurContainer);
+        // append blur container to body
+        document.body.appendChild(blurContainer);
+       
+    }
 }
 
 
@@ -139,6 +140,7 @@ async function likePost(btn) {
         },
     });
     const data = await response.json();
+    console.log(`data from likePost: ${data}`);
     btn.nextElementSibling.innerText = parseInt(btn.nextElementSibling.innerText) + 1;
     const unlikeBtn = document.createElement("i");
     unlikeBtn.classList.add("fa-solid");
@@ -544,11 +546,12 @@ const old_height = {
 window.onscroll = async function () {
     const pageHeight = document.documentElement.scrollHeight;
     if ((Math.ceil(window.scrollY) + window.innerHeight >= pageHeight) && pageHeight != old_height.height) {
+        old_height.height = pageHeight;
         if (document.location.pathname === "/") {
-            old_height.height = pageHeight;
             await loadMorePosts();
+        } else if (document.location.pathname === "/search") {
+            await loadMorePostsFromSearch();
         }
-    } else {
     }
 };
 async function loadMorePosts() {
@@ -569,7 +572,7 @@ async function loadMorePosts() {
 
     const feed = document.querySelectorAll(".feed");
     const lastIndex = parseInt(feed[feed.length - 1].dataset.index);
-
+    if (!lastIndex) return;
     //load ones from cookies first
     const postsArray = document.cookie.replace(/(?:(?:^|.*;\s*)new\s*\=\s*([^;]*).*$)|^.*$/, "$1");
     const posts = JSON.parse(postsArray);

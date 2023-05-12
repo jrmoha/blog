@@ -387,8 +387,8 @@ class postModel {
       const { rows } = await connection.query(query, [
         current_username,
         `%${q}%`,
-        config.limit_post_per_page,
-        (page - 1) * config.limit_post_per_page,
+        config.limit_posts_per_search,
+        (page - 1) * config.limit_posts_per_search,
       ]);
       connection.release();
       return rows;

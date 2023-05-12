@@ -324,12 +324,12 @@ export const searchPageController = async (req: Request, res: Response) => {
 
 export const searchForAUser = async (req: Request, res: Response) => {
   try {
-    const username = (req?.user as string) || 'jrmoha';
+    const current_username = req?.user as string;
     const query = req.query.q as string;
     const page = parseInt(req.query.page as string, 10) || 1;
     if (!query) return res.json({ success: false, response: [] });
     const users = await userModel.searchUserByUsernameOrFullName(
-      username,
+      current_username,
       query,
       page
     );

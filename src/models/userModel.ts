@@ -896,8 +896,8 @@ class userModel {
       const { rows } = await connection.query(query, [
         current_username,
         `%${search_query}%`,
-        config.limit_user_per_page,
-        (page - 1) * config.limit_user_per_page,
+        config.limit_users_per_search,
+        (page - 1) * config.limit_users_per_search,
       ]);
       connection.release();
       rows.forEach((row: any) => {

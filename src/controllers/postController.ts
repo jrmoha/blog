@@ -209,7 +209,7 @@ export const getPostsByHashtag = async (req: Request, res: Response) => {
 };
 export const searchForAPost = async (req: Request, res: Response) => {
   try {
-    const current_username: string = (req?.user as string) || 'jrmoha';
+    const current_username: string = req?.user as string;
     const query = req.query.q as string;
     const page = parseInt(req.query.page as string) || 1;
     const response: Post[] = await postModel.getPostsBySearch(
@@ -217,10 +217,14 @@ export const searchForAPost = async (req: Request, res: Response) => {
       query,
       page
     );
+    await addBasicDataToPosts(response);
+    const liked_posts: number[] = await postModel.getUserLikedPostsAsArray(
+      current_username
+    );
     if (response.length) {
-      res.json({ success: true, posts: response });
+      res.json({ success: true, liked_posts: liked_posts, posts: response });
     } else {
-      res.json({ success: true, message: 'No Posts Found' });
+      res.json({ success: true,liked_posts:liked_posts, posts: []});
     }
   } catch (err: any) {
     res.json({ success: false, message: err.message, status: err.status });

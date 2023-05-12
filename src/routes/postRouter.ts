@@ -10,9 +10,10 @@ router
     upload.array('images', 10),
     postController.createPost
   )
-  .put('/edit', postController.editPost)
-  .delete('/delete', postController.deletePost)
-  .get('/search', postController.searchForAPost)
+  .put('/edit', authenticationMiddleware, postController.editPost)
+  .delete('/delete', authenticationMiddleware, postController.deletePost)
+  .get('/search', authenticationMiddleware, postController.searchForAPost)
+  .get('/api/search', authenticationMiddleware, postController.searchForAPost)
   .get('/trendingtags', postController.trendingTags)
   .get('/post/:post_id', authenticationMiddleware, postController.getPost)
   .post(
@@ -37,16 +38,15 @@ router
     postController.deleteComment
   )
   .put('/api/editComment', authenticationMiddleware, postController.editComment)
-  .get('/user/:username', postController.getPostsByUser)
+  .get(
+    '/user/:username',
+    authenticationMiddleware,
+    postController.getPostsByUser
+  )
   .get(
     '/hashtags/:hashtag',
     authenticationMiddleware,
     postController.getPostsByHashtag
   )
-  .get('/trending', authenticationMiddleware, postController.trendingPosts)
-  .get(
-    '/search',
-    // authenticationMiddleware,
-    postController.searchForAPost
-  );
+  .get('/trending', authenticationMiddleware, postController.trendingPosts);
 export default router;
