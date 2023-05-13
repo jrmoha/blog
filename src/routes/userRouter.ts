@@ -8,6 +8,11 @@ const router = Router();
 router
   .get('/', authenticationMiddleware, userController.getFeed)
   .get(
+    '/history',
+    authenticationMiddleware,
+    userController.historyPageController
+  )
+  .get(
     '/users/:username',
     authenticationMiddleware,
     userController.profilePageController
@@ -89,5 +94,10 @@ router
     '/api/change-password',
     authenticationMiddleware,
     userController.changePasswordController
+  )
+  .delete(
+    '/api/history/delete',
+    authenticationMiddleware,
+    userController.deleteHistoryController
   );
 export default router;

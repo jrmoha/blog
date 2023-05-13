@@ -51,8 +51,10 @@ export default {
   default_profile_image: 'default_user.jpg',
   activity_page_size: 15,
   limit_post_per_page: 10,
-  limit_images_per_profile:12,
+  limit_images_per_profile: 12,
   limit_user_per_page: 20,
   limit_users_per_search: 6,
   limit_posts_per_search: 6,
+  history_page_size: 20,
+  history_limit: 5,
 };

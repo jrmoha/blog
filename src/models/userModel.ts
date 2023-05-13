@@ -247,10 +247,13 @@ class userModel {
   async searchHistory(username: string): Promise<string[]> {
     try {
       const connection: PoolClient = await db.connect();
-      const query = `SELECT search FROM user_search WHERE username=$1 ORDER BY search_date DESC`;
-      const { rows } = await connection.query(query, [username]);
+      const query = `SELECT search,search_date FROM user_search WHERE username=$1 ORDER BY search_date DESC LIMIT $2`;
+      const { rows } = await connection.query(query, [
+        username,
+        config.history_page_size,
+      ]);
       connection.release();
-      return rows[0];
+      return rows;
     } catch (err: any) {
       const error: IError = {
         message: err.message,
@@ -883,7 +886,7 @@ class userModel {
   async searchUserByUsernameOrFullName(
     current_username: string,
     search_query: string,
-    page=1
+    page = 1
   ): Promise<User[]> {
     try {
       const connection = await db.connect();

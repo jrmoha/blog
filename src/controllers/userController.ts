@@ -307,6 +307,7 @@ export const searchPageController = async (req: Request, res: Response) => {
   try {
     const username = req?.user as string;
     const query = req.query.q as string;
+    if (!query) return res.render('search', { title: 'Search' });
     const users: User[] = await userModel.searchUserByUsernameOrFullName(
       username,
       query
@@ -314,6 +315,8 @@ export const searchPageController = async (req: Request, res: Response) => {
     res.locals.users = users;
     const posts: Post[] = await postModel.getPostsBySearch(username, query);
     await addBasicDataToPosts(posts);
+    userModel.insert_search(username, query);
+
     res.locals.posts = posts;
     res.locals.liked_posts = await postModel.getUserLikedPostsAsArray(username);
     res.render('search', { title: 'Search' });
@@ -334,6 +337,30 @@ export const searchForAUser = async (req: Request, res: Response) => {
       page
     );
     res.json({ success: true, response: users });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const historyPageController = async (req: Request, res: Response) => {
+  try {
+    const username = req?.user as string;
+    const history: string[] = await userModel.searchHistory(username);
+    history.forEach((item: any) => {
+      item.search_date = new Date(item.search_date).toString().slice(0, 21);
+    });
+    res.locals.history = history;
+    res.render('history', { title: 'History' });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+export const deleteHistoryController = async (req: Request, res: Response) => {
+  try {
+    const username = req?.user as string;
+    const { query } = req.body;
+    const response = await userModel.deleteSearch(username, query);
+    res.json({ success: response });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }

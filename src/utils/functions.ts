@@ -4,7 +4,9 @@ import postModel from '../models/postModel';
 import userModel from '../models/userModel';
 import config from './config';
 import Post from '../types/post_type';
+
 const message_secret = config.message.secret as string;
+
 export const getHashtags = (query: string): string[] => {
   const regex = /\B(#[a-zA-Z0-9_]+\b)(?!;)/gm;
   const hashtags = query.match(regex);

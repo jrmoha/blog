@@ -44,7 +44,7 @@ async function loadMorePostsFromSearch() {
     const posts = data.posts;
     if (posts.length) {
         skeleton.remove();
-        for(let i = 0; i < posts.length; i++) {
+        for (let i = 0; i < posts.length; i++) {
             const post = posts[i];
             createSearchPost(post, data.liked_posts, right_row);
         }
@@ -73,7 +73,7 @@ async function loadMoreUsersFromSearch() {
     const users = data.response;
     if (users.length) {
         skeleton.remove();
-        for(let i = 0; i < users.length; i++) {
+        for (let i = 0; i < users.length; i++) {
             const user = users[i];
             createSearchUser(user, row);
         }
@@ -194,3 +194,24 @@ function createSearchPost(post, liked_posts, right_row) {
     });
     parseHashtags(feed_content.querySelector(".feed_content p"));
 }
+
+document.querySelectorAll('.delete-history-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+        const query = btn.parentElement.querySelector('.history-title').innerHTML.trim();
+        const res = await fetch('/api/history/delete', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                query
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            btn.parentElement.remove();
+        } else {
+            alert('Something went wrong');
+        }
+    });
+});

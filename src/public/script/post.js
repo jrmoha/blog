@@ -59,7 +59,6 @@ async function getLikes(btn) {
 
     });
     const likes = await response.json();
-    console.log(likes.length);
     if (likes.length > 0) {
         btn.innerText = likes.length;
         for (const like of likes) {
@@ -84,7 +83,6 @@ async function getLikes(btn) {
 
             const follow_button = document.createElement('button');
             if (like.follow_status == 1) {
-                console.log(like.username);
                 follow_button.textContent = "Unfollow";
                 follow_button.classList.add('unfollow_button');
                 follow_button.addEventListener('click', async function () {
@@ -119,12 +117,6 @@ async function getLikes(btn) {
     }
 }
 
-
-// document.querySelector('textarea[name="postArea"]').addEventListener('input', function (e) {
-//     const text = e.target.value;
-//     e.target.innerHTML = parseHashtag(text);
-//     console.log(parseHashtag(text));
-// });
 function parseHashtag(text) {
     const regex = /\B(#[a-zA-Z0-9_]+\b)(?!;)/gm;
     matches = text.replace(regex, '<span style="color: blue;">$1</span>');
@@ -132,7 +124,6 @@ function parseHashtag(text) {
 }
 async function likePost(btn) {
     const post_id = btn.dataset.post_id;
-    //api call
     const response = await fetch(`/posts/api/post/like/${post_id}`, {
         method: "POST",
         headers: {
@@ -140,7 +131,6 @@ async function likePost(btn) {
         },
     });
     const data = await response.json();
-    console.log(`data from likePost: ${data}`);
     btn.nextElementSibling.innerText = parseInt(btn.nextElementSibling.innerText) + 1;
     const unlikeBtn = document.createElement("i");
     unlikeBtn.classList.add("fa-solid");
@@ -259,7 +249,6 @@ if (publishIcons) {
                 error_div.classList.add("error_div");
                 error_div.textContent = "You can upload maximum 10 images";
                 document.querySelector(".right_row").insertBefore(error_div, document.querySelector(".right_row").firstChild);
-                console.log("You can upload maximum 10 images");
                 return;
             } else {
                 if (document.querySelector(".error_div")) {
@@ -312,7 +301,7 @@ if (publishButton) {
                 post.classList.add("row");
                 post.classList.add("border-radius");
                 post.innerHTML = `
-           <div class="feed">
+                                 <div class="feed">
                                         <div class="feed_title">
                                             <a href="/users/${data.response.username}">
                                                 <img src=${document.getElementById("profile_pic").src} alt="" /></a>
@@ -372,13 +361,8 @@ if (publishButton) {
                     parseHashtags(post.querySelector(".feed_content p"));
                 }, 1000);
 
-
-
-
-
                 socket.emit('send-post', data.response);
             } else {
-                console.log(data);
                 window.location.reload();
             }
         }
@@ -579,7 +563,6 @@ async function loadMorePosts() {
     if (posts.length > 0) {
         while (posts.length > 0) {
             const post = posts.shift();
-            console.log(post);
             await create_post(post, 0, [], lastIndex);
         }
         document.cookie = `new=${JSON.stringify(posts)};path=/`;
@@ -709,10 +692,8 @@ if (!document.cookie.includes("new")) {
     document.cookie = "new=[]";
 }
 socket.on("new-post", async (post) => {
-    console.log("new post received");
     const postsArray = document.cookie.replace(/(?:(?:^|.*;\s*)new\s*\=\s*([^;]*).*$)|^.*$/, "$1");
     const posts = JSON.parse(postsArray);
     posts.push(post)
-    console.log(posts);
     document.cookie = "new=" + JSON.stringify(posts);
 });
