@@ -365,3 +365,12 @@ export const deleteHistoryController = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+export const clearHistoryController = async (req: Request, res: Response) => {
+  try {
+    const username = req?.user as string;
+    const response = await userModel.clearHistory(username);
+    res.json({ success: response });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

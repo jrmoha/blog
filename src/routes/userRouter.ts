@@ -99,5 +99,10 @@ router
     '/api/history/delete',
     authenticationMiddleware,
     userController.deleteHistoryController
+  )
+  .delete(
+    '/api/history/clear',
+    authenticationMiddleware,
+    userController.clearHistoryController
   );
 export default router;

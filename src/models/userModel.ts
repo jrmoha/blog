@@ -229,7 +229,17 @@ class userModel {
   ): Promise<boolean> {
     try {
       const connection: PoolClient = await db.connect();
-      const query = `INSERT INTO user_search(username,search) VALUES ($1,$2)`;
+      const check_query = `SELECT * FROM user_search WHERE username=$1 AND search=$2`;
+      const check_result = await connection.query(check_query, [
+        username,
+        search_title,
+      ]);
+      let query = ``;
+      if (check_result.rowCount == 1) {
+        query = `UPDATE user_search SET search_date=NOW() WHERE username=$1 AND search=$2`;
+      } else {
+        query = `INSERT INTO user_search(username,search) VALUES ($1,$2)`;
+      }
       const { rowCount } = await connection.query(query, [
         username,
         search_title,
@@ -258,6 +268,21 @@ class userModel {
       const error: IError = {
         message: err.message,
         status: err.status || 400,
+      };
+      throw error;
+    }
+  }
+  async clearHistory(username: string): Promise<boolean> {
+    try {
+      const connection: PoolClient = await db.connect();
+      const query = `DELETE FROM user_search WHERE username=$1`;
+      const { rowCount } = await connection.query(query, [username]);
+      connection.release();
+      return rowCount > 0;
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 500,
       };
       throw error;
     }

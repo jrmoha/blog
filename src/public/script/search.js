@@ -6,6 +6,15 @@ if (navbar_search) {
             search();
         });
     }
+    const searchInput = document.querySelector('input[name="searchInput"]');
+    searchInput.addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') {
+            search();
+        } if (e.key === 'Escape') {
+            searchInput.value = '';
+            searchInput.blur();
+        }
+    });
 }
 function search() {
     const searchInput = document.querySelector('input[name="searchInput"]');
@@ -194,24 +203,65 @@ function createSearchPost(post, liked_posts, right_row) {
     });
     parseHashtags(feed_content.querySelector(".feed_content p"));
 }
-
+async function deleteHistory(btn) {
+    const query = btn.parentElement.querySelector('.history-title').innerHTML.trim();
+    const res = await fetch('/api/history/delete', {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            query
+        })
+    });
+    const data = await res.json();
+    if (data.success) {
+        btn.parentElement.remove();
+        if (document.querySelector('.history').children.length == 0) {
+            deleteHistoryElements();
+        }
+    } else {
+        console.log('Something went wrong');
+        console.table(data);
+    }
+}
 document.querySelectorAll('.delete-history-btn').forEach((btn) => {
     btn.addEventListener('click', async () => {
-        const query = btn.parentElement.querySelector('.history-title').innerHTML.trim();
-        const res = await fetch('/api/history/delete', {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                query
-            })
-        });
-        const data = await res.json();
-        if (data.success) {
-            btn.parentElement.remove();
-        } else {
-            alert('Something went wrong');
-        }
+        await deleteHistory(btn);
     });
 });
+document.querySelectorAll('.history-title').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+        const query = btn.innerHTML.trim();
+        window.location.href = `/search?q=${query}`;
+    });
+}
+);
+const deleteallHistory_btn = document.querySelector(".deleteallHistory-btn");
+if (deleteallHistory_btn) {
+    deleteallHistory_btn.addEventListener("click", async () => {
+        await deleteallHistory();
+    });
+}
+async function deleteallHistory() {
+    const res = await fetch('/api/history/clear', {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
+    const data = await res.json();
+    if (data.success) {
+        deleteHistoryElements();
+    } else {
+        console.log('Something went wrong');
+    }
+}
+function deleteHistoryElements() {
+    document.querySelector('.history').remove();
+    document.querySelector('.deleteallHistory').remove();
+    const history_alert = document.createElement('div');
+    history_alert.classList.add('history-alert');
+    history_alert.innerHTML = `<h3>Your Search history is clean.</h3>`;
+    document.querySelector('.right_row').appendChild(history_alert);
+}
