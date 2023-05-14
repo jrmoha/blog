@@ -113,7 +113,7 @@ async function getLikes(btn) {
 
         // append blur container to body
         document.body.appendChild(blurContainer);
-       
+
     }
 }
 
@@ -556,7 +556,15 @@ async function loadMorePosts() {
 
     const feed = document.querySelectorAll(".feed");
     const lastIndex = parseInt(feed[feed.length - 1].dataset.index);
-    if (!lastIndex) return;
+    if (!lastIndex || lastIndex % 10 != 0) {
+        skeleton.remove();
+        const no_more = document.createElement("div");
+        no_more.classList.add("no-more");
+        no_more.innerHTML = `<h3>No more posts to show</h3>`;
+        document.querySelector(".right_row").appendChild(no_more);
+        old_height.height = document.documentElement.scrollHeight;
+        return;
+    }
     //load ones from cookies first
     const postsArray = document.cookie.replace(/(?:(?:^|.*;\s*)new\s*\=\s*([^;]*).*$)|^.*$/, "$1");
     const posts = JSON.parse(postsArray);

@@ -149,11 +149,11 @@ function createSearchPost(post, liked_posts, right_row) {
     feed_content.classList.add("feed_content");
     feed_content.innerHTML = `<p>${post.post_content}</p>`;
     if (post.images != undefined && post.images.length) {
-        feed_content.innerHTML += `div class="feed_content_image">
+        feed_content.innerHTML += `<div class="feed_content_image">
         <a href="/posts/post/${post.post_id}"><img
                 src="images/posts/${post.single_image.img_src}"
                 alt="" /></a>
-    </div>`;
+            </div>`;
     }
     let feed_footer = document.createElement("div");
     feed_footer.classList.add("feed_footer");

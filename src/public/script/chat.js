@@ -97,7 +97,7 @@ function sendMessage(receiver, inboxId = undefined) {
     const message = document.querySelector(".chat-footer input").value.trim();
     if (message !== "") {
         socket.emit("send-message", { receiver, message, inboxId });
-        const img_src = document.getElementById("profile_pic").src;
+        const img_src = document.querySelector(".navbar_user img").src || document.getElementById("profile_pic").src;
         const chatMessage = document.createElement("div");
         chatMessage.classList.add("chat-message");
         chatMessage.innerHTML = `
@@ -121,7 +121,7 @@ socket.on("new-message", (message) => {
         document.querySelector(".chat-body").scrollTop = document.querySelector(".chat-body").scrollHeight;
     } else {
         openChatBox(message.sender_username, message.inbox_id);
-    } 
+    }
     socket.emit("load-inbox");
 });
 document.querySelector(".fa.fa-power-off").addEventListener("click", function () {

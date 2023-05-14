@@ -97,8 +97,6 @@ export default function (server: http.Server): Server {
     socket.on('send-post', async (post) => {
       const current_user = socket.decoded?.username as string;
       const receivers: any[] = await userModel.getFollowers(current_user);
-      console.log(receivers[0].follower_username);
-
       for (let i = 0; i < receivers.length; i++) {
         const receiver = receivers[i];
         socket.to(receiver.follower_username).emit('new-post', post);
