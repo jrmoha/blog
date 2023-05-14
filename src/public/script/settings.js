@@ -1,4 +1,5 @@
-if (window.location.pathname === '/settings') {
+if (window.location.pathname === '/settings/') {
+    console.log('settings page');
     const settings_content = document.querySelector('.settings_content');
     const updateBtn = settings_content.querySelector('button');
     const show_last_seen = settings_content.querySelectorAll('input')[0];
@@ -35,6 +36,7 @@ if (window.location.pathname === '/settings') {
             };
             if (JSON.stringify(data) === JSON.stringify(old_data) || Object.keys(data).length === 0) {
                 console.log('No changes made');
+                updateBtn.innerHTML = 'Save Profile';
                 return;
             }
             for (let key in data) {

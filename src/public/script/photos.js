@@ -37,31 +37,58 @@ for (let i = 0; i < profilephotospage.length; i++) {
             imageContainer.appendChild(left_span);
             imageContainer.appendChild(right_span);
         }
-        document.querySelector(".exit-button").addEventListener("click", () => {
-            blurContainer.remove();
-            imageGallery.style.display = "none";
-            imageContainer.removeChild(left_span);
-            imageContainer.removeChild(right_span);
+        window.addEventListener("keydown", (e) => {
+            if (document.querySelector(".image-gallery").style.display == "none") return;
+            console.log("key pressed");
+            if (e.key === "ArrowLeft") {
+                loadNextImage("left");
+            } else if (e.key === "ArrowRight") {
+                loadNextImage("right");
+            } else if (e.key === "Escape") {
+                closeImageGallery();
+            }
         });
-        left_span.addEventListener("click", () => {
-            if (i > 0) {
-                i--;
-                image.src = profilephotospage[i].getAttribute("src");
-                imageContainer.appendChild(right_span);
-                if (i === 0) {
-                    imageContainer.removeChild(left_span);
+        function loadNextImage(direction) {
+            if (direction === "left") {
+                if (i > 0) {
+                    i--;
+                    image.src = profilephotospage[i].getAttribute("src");
+                    imageContainer.appendChild(right_span);
+                    if (i === 0) {
+                        imageContainer.removeChild(left_span);
+                    }
+                }
+            } else if (direction === "right") {
+                if (i < profilephotospage.length - 1) {
+                    i++;
+                    image.src = profilephotospage[i].getAttribute("src");
+                    imageContainer.appendChild(left_span);
+                    if (i === profilephotospage.length - 1) {
+                        imageContainer.removeChild(right_span);
+                    }
                 }
             }
+        }
+        function closeImageGallery() {
+            blurContainer.remove();
+            const new_image_gallery = document.createElement("div");
+            new_image_gallery.classList.add("image-gallery");
+            const new_image_container = document.createElement("div");
+            new_image_container.classList.add("image-container");
+            new_image_container.innerHTML = `
+                    <img src="" alt="Image 1">
+                    <span class="exit-button">&times;</span>
+                `;
+            new_image_gallery.appendChild(new_image_container);
+            document.querySelector(".row.shadow").after(new_image_gallery);
+
+        }
+        document.querySelector(".exit-button").addEventListener("click", closeImageGallery);
+        left_span.addEventListener("click", () => {
+            loadNextImage("left");
         });
         right_span.addEventListener("click", () => {
-            if (i < profilephotospage.length - 1) {
-                i++;
-                image.src = profilephotospage[i].getAttribute("src");
-                imageContainer.appendChild(left_span);
-                if (i === profilephotospage.length - 1) {
-                    imageContainer.removeChild(right_span);
-                }
-            }
+            loadNextImage("right");
         });
     });
 }

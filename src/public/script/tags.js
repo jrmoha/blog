@@ -12,6 +12,6 @@ async function updateTags() {
         tagsBody.appendChild(tagDiv);
     });
 }
-if(tagsBody){
+if (tagsBody) {
     updateTags();
 }
