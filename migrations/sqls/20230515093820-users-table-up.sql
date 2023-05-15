@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS message(
 	FOREIGN KEY (receiver_username) REFERENCES users(username)
 );
 CREATE TABLE IF NOT EXISTS provider(
-	provider_id BIGINT NOT NULL,
+	provider_id VARCHAR(255) NOT NULL,
 	provider_name VARCHAR(255) NOT NULL,
 	username VARCHAR(255) NOT NULL,
 	PRIMARY KEY (provider_id),
