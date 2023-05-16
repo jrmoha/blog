@@ -701,14 +701,18 @@ class userModel {
   async friendsStatus(username: string): Promise<User[]> {
     try {
       const connection = await db.connect();
-      let query = `SELECT f.followed_username,MAX(u.update_time) AS lastseen FROM follow f `;
+      let query = `SELECT f.followed_username,MAX(u.update_time) AS lastseen,`;
+      query += `(SELECT show_status FROM options WHERE username=f.followed_username) `;
+      query += `FROM follow f `;
       query += `JOIN user_session u ON u.username=f.followed_username `;
-      query += `WHERE f.follower_username=$1 AND f.follow_status=1 GROUP BY f.followed_username `;
+      query += `WHERE f.follower_username=$1 AND f.follow_status=1 `;
+      query += `GROUP BY f.followed_username `;
       query += `ORDER BY lastseen DESC;`;
       const { rows } = await connection.query(query, [username]);
       connection.release();
       for (const row of rows) {
-        row.lastseen = formatUserStatusTime(row.lastseen);
+        if (row.show_status) row.lastseen = formatUserStatusTime(row.lastseen);
+        else row.lastseen = { currnet_status: 'offline', lastactive: 'never' };
         row.user_image = await this.getCurrentProfileImage(
           row.followed_username
         );

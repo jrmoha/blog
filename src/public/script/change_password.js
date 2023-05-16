@@ -1,4 +1,5 @@
 const change_password_btn = document.querySelector('button[name="change-password-btn"]');
+const alertDiv = document.querySelector('.alert');
 if (change_password_btn) {
     change_password_btn.addEventListener('click', async function () {
         change_password_btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
