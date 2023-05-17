@@ -919,12 +919,26 @@ class userModel {
   ): Promise<User[]> {
     try {
       const connection = await db.connect();
-      let query = ` SELECT u.username, u.first_name || ' ' || u.last_name AS "full_name",`;
-      query += `(SELECT MAX(img_src) AS "profile_image" FROM user_image WHERE username=u.username),`;
-      query += `(SELECT follow_status FROM follow WHERE followed_username=u.username AND follower_username=$1) `;
+      // let query = ` SELECT u.username, u.first_name || ' ' || u.last_name AS "full_name",`;
+      // query += `(SELECT MAX(img_src) AS "profile_image" FROM user_image WHERE username=u.username),`;
+      // query += `(SELECT follow_status FROM follow WHERE followed_username=u.username AND follower_username=$1) `;
+      // query += `FROM users u `;
+      // query += `WHERE u.username LIKE $2 OR (u.first_name || ' ' || u.last_name) LIKE $2 `;
+      // query += `LIMIT $3 OFFSET $4`;
+
+      let query = `SELECT u.username, u.first_name || ' ' || u.last_name AS "full_name",f.follow_status,`;
+      query += `(SELECT MAX(img_src) AS "profile_image" FROM user_image WHERE username=u.username) `;
       query += `FROM users u `;
+      query += `LEFT JOIN follow f ON f.followed_username=u.username AND f.follower_username=$1 `;
       query += `WHERE u.username LIKE $2 OR (u.first_name || ' ' || u.last_name) LIKE $2 `;
+      query += `GROUP BY u.username,f.follow_status `;
+      query += `ORDER BY CASE WHEN follow_status = 1 THEN 1 `;
+      query += `WHEN follow_status IS NULL THEN 2 `;
+      query += `WHEN follow_status =0 THEN 3 `;
+      query += `END ASC,`;
+      query += `follow_status ASC `;
       query += `LIMIT $3 OFFSET $4`;
+      
       const { rows } = await connection.query(query, [
         current_username,
         `%${search_query}%`,
