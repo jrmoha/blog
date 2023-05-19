@@ -59,3 +59,9 @@ app.use(notFoundMiddleware);
 app.use(errorMiddleware);
 // app.listen(port);
 httpServer.listen(port);
+
+//--------------------------------------
+//exporting app for jasmine unit testing
+//--------------------------------------
+
+export default app;
