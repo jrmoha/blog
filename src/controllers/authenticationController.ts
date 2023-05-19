@@ -199,7 +199,6 @@ export const updateSessionController = async (req: Request, res: Response) => {
       const response = await userModel.updateSessionTime(
         res.locals.user.session
       );
-      console.log(response);
       res.json({
         success: response,
       });

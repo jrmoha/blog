@@ -12,6 +12,7 @@ import authRouter from './routes/authenticationRouter';
 import postRouter from './routes/postRouter';
 import userRouter from './routes/userRouter';
 import errorMiddleware from './middleware/errorMiddleware';
+import notFoundMiddleware from './middleware/notFoundMiddleware';
 
 const app: Application = express();
 
@@ -54,6 +55,7 @@ app.use(
 app.use('/', authRouter);
 app.use('/posts', postRouter);
 app.use('/', userRouter);
+app.use(notFoundMiddleware);
 app.use(errorMiddleware);
 // app.listen(port);
 httpServer.listen(port);

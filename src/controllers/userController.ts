@@ -7,6 +7,7 @@ import config from '../utils/config';
 import Activity from '../types/activity_type';
 import User from '../types/user_type';
 import { addBasicDataToPosts } from '../utils/functions';
+import notFoundMiddleware from '../middleware/notFoundMiddleware';
 export const getFeed = async (req: Request, res: Response) => {
   try {
     const username = req?.user;
@@ -14,11 +15,9 @@ export const getFeed = async (req: Request, res: Response) => {
     const liked_posts: number[] = await postModel.getUserLikedPostsAsArray(
       username as string
     );
-    console.log(liked_posts);
     res.locals.liked_posts = liked_posts;
     res.render('feed', {
       posts: posts,
-      //liked_posts: res.locals.user.liked_posts,
       title: 'Feed',
     });
   } catch (error: any) {
@@ -113,7 +112,6 @@ export const followersPageController = async (req: Request, res: Response) => {
         );
       }
     }
-    console.log(followers);
     res.render('followers', { followers: followers, title: 'Followers' });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -135,8 +133,6 @@ export const followingsPageController = async (req: Request, res: Response) => {
         );
       }
     }
-    console.log(followings);
-
     res.render('followings', { followings: followings, title: 'Followings' });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -230,7 +226,6 @@ export const updateSettingsController = async (req: Request, res: Response) => {
   try {
     const username = req?.user;
     const options = req.body;
-    console.log(options);
     const response = await userModel.editOptions(username as string, options);
     res.json({ success: true, response: response });
   } catch (error: any) {
@@ -300,7 +295,7 @@ export const profilePageController = async (req: Request, res: Response) => {
       title: profile.first_name + ' ' + profile.last_name,
     });
   } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+    notFoundMiddleware(req, res);
   }
 };
 export const searchPageController = async (req: Request, res: Response) => {

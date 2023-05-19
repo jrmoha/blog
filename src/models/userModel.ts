@@ -89,7 +89,14 @@ class userModel {
       if (rows[0].profile_image == null) {
         rows[0].profile_image = config.default_profile_image;
       }
-      return rows[0];
+      if (rows[0]) {
+        return rows[0];
+      }
+      const err: IError = {
+        message: `This User Doesn't Exist`,
+        status: 404,
+      };
+      throw err;
     } catch (err: any) {
       const error: IError = {
         message: err.message,
@@ -235,7 +242,7 @@ class userModel {
         search_title,
       ]);
       let query = ``;
-      if (check_result.rowCount == 1) {
+      if (check_result.rowCount >= 1) {
         query = `UPDATE user_search SET search_date=NOW() WHERE username=$1 AND search=$2`;
       } else {
         query = `INSERT INTO user_search(username,search) VALUES ($1,$2)`;
@@ -294,7 +301,7 @@ class userModel {
       query += `WHERE search IN (SELECT search FROM user_search WHERE username=$1 AND search=$2 ORDER BY search_date DESC LIMIT 1)`;
       const result = await connection.query(query, [username, search_title]);
       connection.release();
-      return result.rowCount == 1;
+      return result.rowCount >= 1;
     } catch (err: any) {
       const error: IError = {
         message: err.message,
@@ -938,7 +945,7 @@ class userModel {
       query += `END ASC,`;
       query += `follow_status ASC `;
       query += `LIMIT $3 OFFSET $4`;
-      
+
       const { rows } = await connection.query(query, [
         current_username,
         `%${search_query}%`,

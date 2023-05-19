@@ -1,36 +1,40 @@
 'use strict';
 async function loadFriends() {
-    const response = await fetch("/api/friends", {
-        method: "GET",
-        header: {
-            "Content-Type": "application/json"
-        }
-    });
-    const friends = await response.json();
-    let friendsDiv = document.querySelector(".friends");
-    friendsDiv.innerHTML = "";
-    for (const friend of friends) {
-        const friendDiv = document.createElement("div");
-        friendDiv.classList.add("row_contain");
-        friendDiv.classList.add("friend-sidebar");
-        friendDiv.dataset.username = friend.followed_username;
-        friendDiv.style.cursor = "pointer";
-        friendDiv.innerHTML = `<img src="/images/users/${friend.user_image}" alt="" />`;
-        const userStatus = document.createElement("div");
-        userStatus.classList.add("user-status");
-        if (friend.lastseen.current_status === "online") {
-            userStatus.classList.add("online");
-        } else {
-            userStatus.classList.add("offline");
-        }
-        friendDiv.appendChild(userStatus);
-        const span = document.createElement("span");
-        span.innerHTML = `<b>${friend.followed_username}</b>`;
-        friendDiv.appendChild(span);
-        friendsDiv.appendChild(friendDiv);
-        friendDiv.addEventListener("click", function () {
-            openChatBox(friend.followed_username);
+    try {
+        const response = await fetch("/api/friends", {
+            method: "GET",
+            header: {
+                "Content-Type": "application/json"
+            }
         });
+        const friends = await response.json();
+        let friendsDiv = document.querySelector(".friends");
+        friendsDiv.innerHTML = "";
+        for (const friend of friends) {
+            const friendDiv = document.createElement("div");
+            friendDiv.classList.add("row_contain");
+            friendDiv.classList.add("friend-sidebar");
+            friendDiv.dataset.username = friend.followed_username;
+            friendDiv.style.cursor = "pointer";
+            friendDiv.innerHTML = `<img src="/images/users/${friend.user_image}" alt="" />`;
+            const userStatus = document.createElement("div");
+            userStatus.classList.add("user-status");
+            if (friend.lastseen.current_status === "online") {
+                userStatus.classList.add("online");
+            } else {
+                userStatus.classList.add("offline");
+            }
+            friendDiv.appendChild(userStatus);
+            const span = document.createElement("span");
+            span.innerHTML = `<b>${friend.followed_username}</b>`;
+            friendDiv.appendChild(span);
+            friendsDiv.appendChild(friendDiv);
+            friendDiv.addEventListener("click", function () {
+                openChatBox(friend.followed_username);
+            });
+        }
+    } catch (err) {
+        window.location.href = "/login";
     }
 }
 setInterval(async () => {
