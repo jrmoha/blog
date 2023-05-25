@@ -6,13 +6,16 @@ $(document).ready(function () {
         let password = $("input[name=password]").val()
         var email_regex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*.com$/g
         var username_regex = /^(?=.{4,30}$)(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]+(?<![_.])$/g;
-        var password_regex = /\d{8,}/gm
+        var password_regex = /\d{6,}/gm
         let errMsgs = []
         if (!email_regex.test(email_or_username) && !username_regex.test(email_or_username)) {
             errMsgs.push("Please Enter Your Email In A Valid Form.")
         }
-        if (!password_regex.test(password)) {
-            errMsgs.push("Password Must Be More Than 8 Numbers.")
+        // if (!password_regex.test(password)) {
+        //     errMsgs.push("Password Must Be More Than 6 Numbers.")
+        // }
+        if (password.length === 0) {
+            errMsgs.push("Password Must Be More Than 6 Characters.")
         }
         if (errMsgs.length > 0) {
             $("#err").removeClass('d-none');

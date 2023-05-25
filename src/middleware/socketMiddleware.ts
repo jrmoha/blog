@@ -15,7 +15,7 @@ export const socketAuthenticationMiddleware = async (
     //   socket.request.headers.cookie?.split('=')[1];
     //   console.log(`token is ${token}`);
     const token = getJwtFromCookie(socket.request.headers.cookie);
-    console.log(`token is ${token}`);
+    // console.log(`token is ${token}`);
 
     if (!token) {
       return next(new Error('No token provided'));
