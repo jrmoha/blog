@@ -9,6 +9,8 @@
     "lint:fix": "eslint src/**/*.ts --fix",
     "test": "npm run build && jasmine",
     "format": "prettier --write src/**/*.ts",
+    "db:migrate": "db-migrate up",
+    "db:rollback": "db-migrate down",
     "startDev": "nodemon -w *.ts -e ts -x ts-node --files -H -T src/app.ts"
   },
   "repository": {
