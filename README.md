@@ -65,8 +65,8 @@ Npm scripts basically allow us to call (and chain) terminal commands via npm.
 
 | Npm Script | Description |
 | ------------------------- | ------------------------------------------------------------------------------------------------- |
-|`db:migrate`||Create All Entities and Relations|
-|`db:rollback`||Drop All Entities and Relations|
+|`db:migrate`              |Create All Entities and Relations
+|`db:rollback`              |Drop All Entities and Relations
 | `build`                   | Converts TypeScript based file out to dist directory                  |
 | `lint:fix`                   |automatically fixes any errors or warnings that the linter can fix.     |
 | `format`                   |format code for better visualization      |
