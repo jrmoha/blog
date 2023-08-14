@@ -46,7 +46,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(helmet());
-app.use(morgan('tiny', { skip: () => process.env.NODE_ENV === 'test' }));
+app.use(morgan('combined'));
 app.use(
   cors({
     origin: '*',
