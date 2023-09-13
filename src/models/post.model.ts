@@ -1,11 +1,11 @@
 import db from '../database';
-import Post from '../types/post_type';
-import Comment from '../types/comment_type';
-import IError from '../interfaces/error';
-import User from '../types/user_type';
+import Post from '../types/post.type';
+import Comment from '../types/comment.type';
+import IError from '../interfaces/error.interface';
+import User from '../types/user.type';
 import config from '../utils/config';
 import { addBasicDataToPosts, formatTime } from '../utils/functions';
-import userModel from './userModel';
+import userModel from './user.model';
 const { trending_num } = config;
 class postModel {
   async getPost(post_id: number): Promise<Post> {

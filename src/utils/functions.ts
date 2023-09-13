@@ -1,9 +1,9 @@
 import bcryptjs from 'bcryptjs';
 import CryptoJS from 'crypto-js';
-import postModel from '../models/postModel';
-import userModel from '../models/userModel';
+import postModel from '../models/post.model';
+import userModel from '../models/user.model';
 import config from './config';
-import Post from '../types/post_type';
+import Post from '../types/post.type';
 
 const message_secret = config.message.secret as string;
 

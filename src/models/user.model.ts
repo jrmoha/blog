@@ -1,18 +1,18 @@
 import db from '../database';
-import User from '../types/user_type';
-import IError from '../interfaces/error';
-import Options from '../types/options_type';
+import User from '../types/user.type';
+import IError from '../interfaces/error.interface';
+import Options from '../types/options.type';
 import { PoolClient } from 'pg';
-import postModel from './postModel';
+import postModel from './post.model';
 import {
   comparePassword,
   hashPassword,
   formatUserStatusTime,
   addBasicDataToPosts,
 } from '../utils/functions';
-import Post from '../types/post_type';
+import Post from '../types/post.type';
 import config from '../utils/config';
-import Activity from '../types/activity_type';
+import Activity from '../types/activity.type';
 
 class userModel {
   async username_email_taken(
@@ -61,7 +61,7 @@ class userModel {
       const connection: PoolClient = await db.connect();
       let query = `INSERT INTO users (username,email,password,first_name,last_name,birth_date) `;
       query += `VALUES ($1,$2,$3,$4,$5,$6) RETURNING username,email,first_name,last_name`;
-      console.log(`hashedPassword: ${password}`);
+      
       const hashedPassword = await hashPassword(password);
 
       const { rows } = await connection.query(query, [

@@ -25,8 +25,11 @@ export const authenticationMiddleware = (
         return next();
       } else {
         if (err) {
-          console.log(err);
-          return res.redirect('/login');
+          res.clearCookie('jwt');
+          req.session.destroy((err) => {
+            if (err) throw next(err);
+            return res.redirect('/login');
+          });
         }
       }
       req.user = decoded.user.username;
@@ -34,7 +37,6 @@ export const authenticationMiddleware = (
     });
     next();
   } catch (error) {
-    console.log('error in authenticationMiddleware');
-    console.log(error);
+    next(error);
   }
 };

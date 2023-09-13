@@ -1,7 +1,7 @@
 import db from '../database';
-import IError from '../interfaces/error';
-import Inbox from '../types/inbox_type';
-import Message from '../types/message_type';
+import IError from '../interfaces/error.interface';
+import Inbox from '../types/inbox.type';
+import Message from '../types/message.type';
 
 class ChatModel {
   /* Chat Area */

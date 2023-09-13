@@ -1,4 +1,4 @@
-import IError from '../interfaces/error';
+import IError from '../interfaces/error.interface';
 import { Request, Response, NextFunction } from 'express';
 
 const errorMiddleware = (

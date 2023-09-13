@@ -8,11 +8,11 @@ import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import io from './socket';
 import config from './utils/config';
-import authRouter from './routes/authenticationRouter';
-import postRouter from './routes/postRouter';
-import userRouter from './routes/userRouter';
-import errorMiddleware from './middleware/errorMiddleware';
-import notFoundMiddleware from './middleware/notFoundMiddleware';
+import authRouter from './routes/authentication.router';
+import postRouter from './routes/post.router';
+import userRouter from './routes/user.router';
+import errorMiddleware from './middleware/error.middleware';
+import notFoundMiddleware from './middleware/notFound.middleware';
 
 const app: Application = express();
 

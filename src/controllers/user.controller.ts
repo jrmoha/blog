@@ -1,13 +1,13 @@
-import userModel from '../models/userModel';
+import userModel from '../models/user.model';
 import { Request, Response } from 'express';
-import Post from '../types/post_type';
-import postModel from '../models/postModel';
+import Post from '../types/post.type';
+import postModel from '../models/post.model';
 import jwt from 'jsonwebtoken';
 import config from '../utils/config';
-import Activity from '../types/activity_type';
-import User from '../types/user_type';
+import Activity from '../types/activity.type';
+import User from '../types/user.type';
 import { addBasicDataToPosts } from '../utils/functions';
-import notFoundMiddleware from '../middleware/notFoundMiddleware';
+import notFoundMiddleware from '../middleware/notFound.middleware';
 export const getFeed = async (req: Request, res: Response) => {
   try {
     const username = req?.user;
@@ -40,7 +40,6 @@ export const updateProfilePictureController = async (
 ) => {
   try {
     const username = req?.user;
-    console.log(req.file);
 
     if (!username) throw new Error('No username');
     if (req?.file) {
@@ -62,7 +61,6 @@ export const updateProfilePictureController = async (
         response: { image: response, title: 'Profile Image Updated' },
       });
     } else {
-      console.log('no file');
       throw new Error('No File Uploaded');
     }
   } catch (error) {
