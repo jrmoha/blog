@@ -18,6 +18,9 @@ const {
   GITHUB_CALLBACK_URL,
   JWT_SECRET,
   MESSAGE_SECRET,
+  CLOUDINARY_CLOUD_NAME,
+  CLOUDINARY_API_KEY,
+  CLOUDINARY_SECRET,
 } = process.env;
 
 export default {
@@ -44,6 +47,11 @@ export default {
   },
   message: {
     secret: MESSAGE_SECRET,
+  },
+  cloudinary: {
+    cloud_name: CLOUDINARY_CLOUD_NAME,
+    api_key: CLOUDINARY_API_KEY,
+    api_secret: CLOUDINARY_SECRET,
   },
   default_profile_image: 'default_user.jpg',
   lastseen_timeout: 30000,

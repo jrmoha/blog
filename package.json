@@ -11,7 +11,7 @@
     "format": "prettier --write src/**/*.ts",
     "db:migrate": "db-migrate up",
     "db:rollback": "db-migrate down",
-    "startDev": "nodemon -w *.ts -e ts -x ts-node --files -H -T src/app.ts"
+    "startDev": "nodemon -w *.ts -e ts -x ts-node --files -H -T src/server.ts"
   },
   "repository": {
     "type": "git",
@@ -42,6 +42,7 @@
     "@types/supertest": "^2.0.12",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",
+    "cloudinary": "^1.40.0",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "crypto-js": "^4.1.1",
@@ -60,7 +61,7 @@
     "jsonwebtoken": "^9.0.0",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
-    "nodemon": "^2.0.22",
+    "nodemon": "^3.0.1",
     "passport": "^0.6.0",
     "passport-github2": "^0.1.12",
     "passport-google-oauth20": "^2.0.0",
