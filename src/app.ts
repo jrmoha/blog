@@ -1,12 +1,12 @@
 import express, { Application } from 'express';
 import session from 'express-session';
 import cors from 'cors';
-import http from 'http';
+// import http from 'http';
 import bodyParser from 'body-parser';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
-import io from './socket';
+// import io from './socket';
 import config from './utils/config';
 import authRouter from './routes/authentication.router';
 import postRouter from './routes/post.router';
@@ -26,9 +26,9 @@ app.use('/settings', express.static(__dirname + '/public'));
 app.set('view engine', 'ejs');
 app.set('views', 'src/views');
 
-const httpServer = http.createServer(app);
-io(httpServer);
-const port: number = config.PORT;
+// const httpServer = http.createServer(app);
+// io(httpServer);
+// const port: number = config.PORT;
 app.set('trust proxy', 1);
 app.use(
   session({
@@ -58,6 +58,6 @@ app.use('/', userRouter);
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);
 // app.listen(port);
-httpServer.listen(port);
+// httpServer.listen(port);
 
 export default app;
