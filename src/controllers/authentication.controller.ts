@@ -3,9 +3,11 @@ import userModel from '../models/user.model';
 import jwt from 'jsonwebtoken';
 import config from '../utils/config';
 import postModel from '../models/post.model';
+
 export const loginPageController = async (req: Request, res: Response) => {
   req.user ? res.redirect('/') : res.render('login');
 };
+
 export const loginController = async (req: Request, res: Response) => {
   try {
     const { username, password } = req.body;
@@ -53,9 +55,11 @@ export const loginController = async (req: Request, res: Response) => {
     res.render('login', { error_msg: err.message });
   }
 };
+
 export const regPageController = async (req: Request, res: Response) => {
   req.user ? res.redirect('/') : res.render('registration');
 };
+
 export const registerController = async (req: Request, res: Response) => {
   try {
     const {
@@ -124,6 +128,7 @@ export const registerController = async (req: Request, res: Response) => {
     res.render('registration', { reg_err: err.message });
   }
 };
+
 export const logoutController = async (req: Request, res: Response) => {
   try {
     res.clearCookie('jwt');
@@ -136,6 +141,7 @@ export const logoutController = async (req: Request, res: Response) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 export const findOrCreateController = async function verify(
   _accessToken: string,
   _refreshToken: string,
@@ -149,6 +155,7 @@ export const findOrCreateController = async function verify(
     return cb(err, null);
   }
 };
+
 export const providerLoginController = async function (
   req: Request,
   res: Response
@@ -190,6 +197,7 @@ export const providerLoginController = async function (
     res.redirect('/login');
   }
 };
+
 export const updateSessionController = async (req: Request, res: Response) => {
   try {
     if (res.locals.user.session) {

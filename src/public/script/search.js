@@ -98,7 +98,7 @@ function createSearchUser(user, row) {
     friendDiv.dataset.index = lastIndex + 1;
     const friend_title = document.createElement("div");
     friend_title.classList.add("friend_title");
-    friend_title.innerHTML = `<img src="images/users/${user.profile_image}" alt="" />
+    friend_title.innerHTML = `<img src="${user.profile_image}" crossorigin="anonymous" loading="lazy" alt="" />
     <span>
         <a href="/users/${user.username}"><b>
                 ${user.full_name}
@@ -134,7 +134,7 @@ function createSearchPost(post, liked_posts, right_row) {
     let feed_title = document.createElement("div");
     feed_title.classList.add("feed_title");
     feed_title.innerHTML = `<a href="/users/${post.username}">
-    <img src="images/users/${post.user_image}" alt="" /></a>
+    <img src="${post.user_image}" crossorigin="anonymous" loading="lazy" alt="" /></a>
     <span><b>
     ${post.full_name}
     </b> Shared a <a href="/posts/post/${post.post_id}">Post<br>
@@ -151,7 +151,7 @@ function createSearchPost(post, liked_posts, right_row) {
     if (post.images != undefined && post.images.length) {
         feed_content.innerHTML += `<div class="feed_content_image">
         <a href="/posts/post/${post.post_id}"><img
-                src="images/posts/${post.single_image.img_src}"
+                src="${post.single_image.img_src}" crossorigin="anonymous" loading="lazy"
                 alt="" /></a>
             </div>`;
     }

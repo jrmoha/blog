@@ -5,7 +5,7 @@
     "host": { "ENV": "DATABASE_HOST" },
     "port": { "ENV": "DATABASE_PORT" },
     "database": { "ENV": "DATABASE" },
-    "user": { "ENV": "DATABASE_USER" },
+    "user": { "ENV": "DATABASE_USERNAME" },
     "password": { "ENV": "DATABASE_PASSWORD" }
   },
   "testing": {
@@ -13,7 +13,7 @@
     "host": { "ENV": "DATABASE_HOST" },
     "port": { "ENV": "DATABASE_PORT" },
     "database": { "ENV": "DATABASE_TEST" },
-    "user": { "ENV": "DATABASE_USER" },
+    "user": { "ENV": "DATABASE_USERNAME" },
     "password": { "ENV": "DATABASE_PASSWORD" }
   }
 }

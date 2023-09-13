@@ -400,13 +400,13 @@ class postModel {
       throw error;
     }
   }
-  async addImages(post_id: number, images: any[]): Promise<any[] | null> {
+  async addImages(post_id: number, images: string[]): Promise<any[] | null> {
     try {
       if (!images.length) return null;
       const connection = await db.connect();
       let query = `INSERT INTO post_images (post_id,img_src) VALUES`;
-      images.forEach((image: any) => {
-        query += `(${post_id},'${image.filename}'),`;
+      images.forEach((image: string) => {
+        query += `(${post_id},'${image}'),`;
       });
       query = query.substring(0, query.length - 1);
       query += ` RETURNING img_src`;
