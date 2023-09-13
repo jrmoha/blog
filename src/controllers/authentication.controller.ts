@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import userModel from '../models/userModel';
+import userModel from '../models/user.model';
 import jwt from 'jsonwebtoken';
 import config from '../utils/config';
-import postModel from '../models/postModel';
+import postModel from '../models/post.model';
 export const loginPageController = async (req: Request, res: Response) => {
   req.user ? res.redirect('/') : res.render('login');
 };
@@ -50,7 +50,6 @@ export const loginController = async (req: Request, res: Response) => {
     });
     res.redirect('/');
   } catch (err: any) {
-    console.log(err);
     res.render('login', { error_msg: err.message });
   }
 };
@@ -157,7 +156,6 @@ export const providerLoginController = async function (
   try {
     const requestUser = req.user as any;
     if (!requestUser) throw new Error('User Not Found');
-    console.log(`requestUser.user = ${requestUser.user}`);
     Promise.all([
       userModel.insertSession(
         req.session.id,
@@ -188,7 +186,6 @@ export const providerLoginController = async function (
     res.cookie('jwt', token);
     res.redirect('/');
   } catch (err: any) {
-    console.log(`err = ${err}`);
     res.locals.error_msg = err.message;
     res.redirect('/login');
   }

@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import * as postController from '../controllers/postController';
-import { authenticationMiddleware } from '../middleware/authenticationMiddleware';
-import upload from '../middleware/postsMulter';
+import * as postController from '../controllers/post.controller';
+import { authenticationMiddleware } from '../middleware/authentication.middleware';
+import upload from '../middleware/postsMulter.middleware';
 const router = Router();
 router
   .post(

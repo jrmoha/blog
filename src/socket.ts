@@ -1,12 +1,12 @@
 import { Server } from 'socket.io';
 import http from 'http';
 import { decryptMessage, encryptMessage, formatTime } from './utils/functions';
-import chatModel from './models/chatModel';
-import userModel from './models/userModel';
-import Inbox from './types/inbox_type';
-import Message from './types/message_type';
-import User from './types/user_type';
-import { socketAuthenticationMiddleware } from './middleware/socketMiddleware';
+import chatModel from './models/chat.model';
+import userModel from './models/user.model';
+import Inbox from './types/inbox.type';
+import Message from './types/message.type';
+import User from './types/user.type';
+import { socketAuthenticationMiddleware } from './middleware/socket.middleware';
 declare module 'socket.io' {
   interface Socket {
     decoded?: User;

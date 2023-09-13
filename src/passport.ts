@@ -1,9 +1,9 @@
 import passport from 'passport';
 import GoogleStrategy from 'passport-google-oauth20';
 import GitHubStrategy from 'passport-github2';
-import User from './types/user_type';
+import User from './types/user.type';
 import config from './utils/config';
-import { findOrCreateController } from './controllers/authenticationController';
+import { findOrCreateController } from './controllers/authentication.controller';
 
 passport.use(
   new GoogleStrategy.Strategy(

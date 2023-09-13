@@ -7,16 +7,7 @@ export const socketAuthenticationMiddleware = async (
   next: any
 ) => {
   try {
-    // const token = socket.handshake.query.token;
-    // console.log(socket.request.headers.cookie);
-
-    // const token =
-    //   socket.request.headers.cookie?.split('=')[2] ||
-    //   socket.request.headers.cookie?.split('=')[1];
-    //   console.log(`token is ${token}`);
     const token = getJwtFromCookie(socket.request.headers.cookie);
-    // console.log(`token is ${token}`);
-
     if (!token) {
       return next(new Error('No token provided'));
     }
@@ -34,6 +25,6 @@ export const socketAuthenticationMiddleware = async (
       }
     );
   } catch (err) {
-    console.log(`err happened ${err}`);
+    next(err);
   }
 };

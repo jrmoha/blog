@@ -1,5 +1,5 @@
-import Comment from './comment_type';
-import User from './user_type';
+import Comment from './comment.type';
+import User from './user.type';
 
 type Post = {
   post_id: number;

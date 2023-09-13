@@ -1,9 +1,9 @@
 import { Express, Request, Response } from 'express';
-import postModel from '../models/postModel';
+import postModel from '../models/post.model';
 import { addBasicDataToPosts, getHashtags } from '../utils/functions';
-import Post from '../types/post_type';
-import userModel from '../models/userModel';
-import Comment from '../types/comment_type';
+import Post from '../types/post.type';
+import userModel from '../models/user.model';
+import Comment from '../types/comment.type';
 
 export const createPost = async (req: Request, res: Response) => {
   try {
@@ -200,8 +200,6 @@ export const getPostsByHashtag = async (req: Request, res: Response) => {
     res.locals.posts = response;
     res.locals.liked_posts = liked_posts;
     res.locals.title = `#${hashtag}`;
-    console.log(`#${hashtag}`);
-    console.log(response);
     res.render('feed');
   } catch (err: any) {
     res.json({ message: err.message, status: err.status });
