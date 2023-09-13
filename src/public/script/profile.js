@@ -14,8 +14,8 @@ $("#change-profile").click(function () {
         const result = await response.json();
         console.log(result);
         const src = result.response.image;
-        document.querySelector("#profile_pic").src = `/images/users/${src}`;
-        document.querySelector(".navbar_user img").src = `/images/users/${src}`;
+        document.querySelector("#profile_pic").src = src;
+        document.querySelector(".navbar_user img").src = src;
         console.log(result.response.title);
     }
     input.click();

@@ -15,7 +15,7 @@ socket.on("inbox", (current_user, inboxes) => {
         }
         li.innerHTML = `
         <a href="javascript:void(0);">
-            <img src="/images/users/${inbox.sender_image}" alt="" />
+            <img src="${inbox.sender_image}" alt="" crossorigin="anonymous" loading="lazy"/>
             <span><b>${li.dataset.username === current_user ? "You" : li.dataset.username}</b><br>${inbox.last_message.substr(0, 200)}<p>${inbox.last_message_time}</p></span>
         </a>`;
         document.querySelector(".chats").appendChild(li);
@@ -45,13 +45,13 @@ function openChatBox(username = undefined, inbox = undefined) {
                 chatBody.innerHTML += `
                 <div class="chat-message">
                 <p>${message.message}</p>
-                <img src="/images/users/${message.receiver_image}" alt="">
+                <img src="${message.receiver_image}" crossorigin="anonymous" loading="lazy" alt="">
                 </div>`;
             } else {
                 chatBody.innerHTML += `
                 <div class="chat-message user">
                 <p>${message.message}</p>
-                <img src="/images/users/${message.sender_image}" alt="">
+                <img src="${message.sender_image}" crossorigin="anonymous" loading="lazy" alt="">
                 </div>`;
             }
 
@@ -65,7 +65,7 @@ function openChatBox(username = undefined, inbox = undefined) {
         footer.innerHTML = `
     <div class="chat-footer">
             <input type="text" placeholder="Type your message...">
-            <img src="images/icons8-paper-plane-64.png"  alt="" class="send-btn">
+            <img src="https://res.cloudinary.com/db3qmksfk/image/upload/v1694638056/social-network/icons8-paper-plane-64_t4g7wj.png" crossorigin="anonymous" loading="lazy" alt="" class="send-btn">
         </div>`;
         document.querySelector(".chat-popup").appendChild(footer);
         document.querySelector(".chat-body").scrollTop = document.querySelector(".chat-body").scrollHeight;
@@ -102,7 +102,7 @@ function sendMessage(receiver, inboxId = undefined) {
         chatMessage.classList.add("chat-message");
         chatMessage.innerHTML = `
             <p>${message}</p>
-            <img src=${img_src} alt="">`;
+            <img src=${img_src}  alt="">`;
         document.querySelector(".chat-body").appendChild(chatMessage);
         document.querySelector(".chat-body").scrollTop = document.querySelector(".chat-body").scrollHeight;
         document.querySelector(".chat-footer input").value = "";
@@ -116,7 +116,7 @@ socket.on("new-message", (message) => {
         chatMessage.classList.add("chat-message", "user");
         chatMessage.innerHTML = `
         <p>${message.message}</p>
-        <img src="/images/users/${message.sender_image}" alt="">`;
+        <img src="${message.sender_image}" crossorigin="anonymous" loading="lazy" alt="">`;
         document.querySelector(".chat-body").appendChild(chatMessage);
         document.querySelector(".chat-body").scrollTop = document.querySelector(".chat-body").scrollHeight;
     } else {

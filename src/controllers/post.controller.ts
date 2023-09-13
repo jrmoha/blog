@@ -1,17 +1,32 @@
 import { Express, Request, Response } from 'express';
+import cloudinary from '../services/cloudinary';
+import fs from 'fs';
 import postModel from '../models/post.model';
 import { addBasicDataToPosts, getHashtags } from '../utils/functions';
 import Post from '../types/post.type';
 import userModel from '../models/user.model';
 import Comment from '../types/comment.type';
+import config from '../utils/config';
 
 export const createPost = async (req: Request, res: Response) => {
   try {
     const username = req?.user as string;
     const { content } = req.body;
     const images = req.files as Express.Multer.File[];
+    const img_src: string[] = [];
+    for (const img of images) {
+      const cloudinary_result = await cloudinary.uploader.upload(
+        img.path,
+        config.cloudinary.options.posts
+      );
+      img_src.push(cloudinary_result.secure_url);
+      fs.unlink(img.path, () => {
+        null;
+      });
+    }
     const response: Post = await postModel.createPost(username, content);
-    const img_response = await postModel.addImages(response.post_id, images);
+    const img_response = await postModel.addImages(response.post_id, img_src);
+
     const hashTags = getHashtags(content);
     Promise.allSettled([
       postModel.addHashtags(response.post_id, hashTags),
@@ -32,6 +47,7 @@ export const createPost = async (req: Request, res: Response) => {
     res.json({ message: err.message, status: err.status });
   }
 };
+
 export const editPost = async (req: Request, res: Response) => {
   try {
     const { post_id, new_content } = req.body;
@@ -47,6 +63,7 @@ export const editPost = async (req: Request, res: Response) => {
     res.json({ message: err.message, status: err.status });
   }
 };
+
 export const deletePost = async (req: Request, res: Response) => {
   try {
     const { username, post_id } = req.body;
@@ -67,6 +84,7 @@ export const deletePost = async (req: Request, res: Response) => {
     res.json({ message: err.message, status: err.status });
   }
 };
+
 export const getPost = async (req: Request, res: Response) => {
   try {
     const post_id: number = parseInt(req.params.post_id);
@@ -89,6 +107,7 @@ export const getPost = async (req: Request, res: Response) => {
     res.render('post', { error: err.message, title: 'Error' });
   }
 };
+
 export const likePost = async (req: Request, res: Response) => {
   try {
     const post_id = parseInt(req.params.post_id);
@@ -104,6 +123,7 @@ export const likePost = async (req: Request, res: Response) => {
     res.json({ message: err.message, status: err.status });
   }
 };
+
 export const unlikePost = async (req: Request, res: Response) => {
   try {
     const post_id = parseInt(req.params.post_id);
@@ -118,6 +138,7 @@ export const unlikePost = async (req: Request, res: Response) => {
     res.json({ message: err.message, status: err.status });
   }
 };
+
 export const addComment = async (req: Request, res: Response) => {
   try {
     const username = req?.user as string;
@@ -137,6 +158,7 @@ export const addComment = async (req: Request, res: Response) => {
     res.json({ message: err.message, status: err.status });
   }
 };
+
 export const deleteComment = async (req: Request, res: Response) => {
   try {
     const { comment_id } = req.body;
@@ -150,6 +172,7 @@ export const deleteComment = async (req: Request, res: Response) => {
     res.json({ message: err.message, status: err.status });
   }
 };
+
 export const editComment = async (req: Request, res: Response) => {
   try {
     const { comment_id, new_comment } = req.body;
@@ -166,6 +189,7 @@ export const editComment = async (req: Request, res: Response) => {
     res.json({ message: err.message, status: err.status });
   }
 };
+
 export const getPostsByUser = async (req: Request, res: Response) => {
   try {
     const username: string = req.params.username;
@@ -175,6 +199,7 @@ export const getPostsByUser = async (req: Request, res: Response) => {
     res.json({ message: err.message, status: err.status });
   }
 };
+
 export const viewPost = async (req: Request, res: Response) => {
   try {
     const { username, post_id } = req.body;
@@ -187,6 +212,7 @@ export const viewPost = async (req: Request, res: Response) => {
     res.json({ message: err.message, status: err.status });
   }
 };
+
 export const getPostsByHashtag = async (req: Request, res: Response) => {
   try {
     const usernmae: string = req?.user as string;
@@ -205,6 +231,7 @@ export const getPostsByHashtag = async (req: Request, res: Response) => {
     res.json({ message: err.message, status: err.status });
   }
 };
+
 export const searchForAPost = async (req: Request, res: Response) => {
   try {
     const current_username: string = req?.user as string;
@@ -222,12 +249,13 @@ export const searchForAPost = async (req: Request, res: Response) => {
     if (response.length) {
       res.json({ success: true, liked_posts: liked_posts, posts: response });
     } else {
-      res.json({ success: true,liked_posts:liked_posts, posts: []});
+      res.json({ success: true, liked_posts: liked_posts, posts: [] });
     }
   } catch (err: any) {
     res.json({ success: false, message: err.message, status: err.status });
   }
 };
+
 export const trendingTags = async (_req: Request, res: Response) => {
   try {
     const response = await postModel.trendingHashtags();
@@ -236,6 +264,7 @@ export const trendingTags = async (_req: Request, res: Response) => {
     res.json({ message: err.message, status: err.status });
   }
 };
+
 export const getLikes = async (req: Request, res: Response) => {
   try {
     const post_id: number = parseInt(req.params.post_id);

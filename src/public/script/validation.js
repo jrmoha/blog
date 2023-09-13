@@ -2,7 +2,7 @@
 $(document).ready(function () {
     $("form[name=login_form]").submit(function (e) {
         e.preventDefault();
-        let email_or_username = $("input[name=username]").val()
+        let email_or_username = $("input[name=username]").val().trim();
         let password = $("input[name=password]").val()
         var email_regex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*.com$/g
         var username_regex = /^(?=.{4,30}$)(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]+(?<![_.])$/g;

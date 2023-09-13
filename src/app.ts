@@ -1,12 +1,10 @@
 import express, { Application } from 'express';
 import session from 'express-session';
 import cors from 'cors';
-// import http from 'http';
 import bodyParser from 'body-parser';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
-// import io from './socket';
 import config from './utils/config';
 import authRouter from './routes/authentication.router';
 import postRouter from './routes/post.router';
@@ -26,9 +24,6 @@ app.use('/settings', express.static(__dirname + '/public'));
 app.set('view engine', 'ejs');
 app.set('views', 'src/views');
 
-// const httpServer = http.createServer(app);
-// io(httpServer);
-// const port: number = config.PORT;
 app.set('trust proxy', 1);
 app.use(
   session({
@@ -45,7 +40,39 @@ app.use(
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cookieParser());
+const cspDirectives = {
+  'default-src': ["'self'"],
+  'img-src': [
+    "'self'",
+    'https://res.cloudinary.com',
+    'http://localhost:*',
+    'data:',
+    'https://source.unsplash.com',
+  ],
+  'upgrade-insecure-requests': [],
+  'script-src': ["'self'"],
+  'style-src': [
+    "'self'",
+    'https://fonts.googleapis.com',
+    'https://maxcdn.bootstrapcdn.com',
+    "'unsafe-inline'",
+  ],
+  'font-src': [
+    "'self'",
+    'https://fonts.gstatic.com',
+    'https://maxcdn.bootstrapcdn.com',
+  ],
+};
+
 app.use(helmet());
+app.use(
+  helmet.contentSecurityPolicy({
+    useDefaults: true,
+    directives: cspDirectives,
+    reportOnly: false,
+  })
+);
+app.use(helmet.crossOriginEmbedderPolicy({ policy: 'credentialless' }));
 app.use(morgan('combined'));
 app.use(
   cors({
@@ -57,7 +84,5 @@ app.use('/posts', postRouter);
 app.use('/', userRouter);
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);
-// app.listen(port);
-// httpServer.listen(port);
 
 export default app;

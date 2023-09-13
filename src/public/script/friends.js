@@ -16,7 +16,7 @@ async function loadFriends() {
             friendDiv.classList.add("friend-sidebar");
             friendDiv.dataset.username = friend.followed_username;
             friendDiv.style.cursor = "pointer";
-            friendDiv.innerHTML = `<img src="/images/users/${friend.user_image}" alt="" />`;
+            friendDiv.innerHTML = `<img src="${friend.user_image}" crossorigin="anonymous" loading="lazy" alt="" />`;
             const userStatus = document.createElement("div");
             userStatus.classList.add("user-status");
             if (friend.lastseen.current_status === "online") {

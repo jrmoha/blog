@@ -70,7 +70,9 @@ async function getLikes(btn) {
             name_image_div.classList.add('row_contain');
 
             const img_element = document.createElement('img');
-            img_element.setAttribute('src', `images/users/${like.image}`)
+            img_element.setAttribute('src', `${like.image}`);
+            img_element.setAttribute('loading', 'lazy');
+            img_element.setAttribute('crossorigin', 'anonymous');
             name_image_div.appendChild(img_element)
 
             const name_elemt = document.createElement('a');
@@ -304,7 +306,7 @@ if (publishButton) {
                                  <div class="feed">
                                         <div class="feed_title">
                                             <a href="/users/${data.response.username}">
-                                                <img src=${document.getElementById("profile_pic").src} alt="" /></a>
+                                                <img src=${document.getElementById("profile_pic").src} crossorigin="anonymous" loading="lazy" alt="" /></a>
                                             <span><b>
                                                    You
                                                 </b> Shared a <a href="/posts/post/${data.response.post_id}">Post<br>
@@ -321,7 +323,7 @@ if (publishButton) {
                 if (data.response.single_image) {
                     post.innerHTML += `<div class="feed_content_image">
                                             <a href="/posts/post/${data.response.post_id}"><img
-                                            src="images/posts/${data.response.single_image}" alt="" /></a>
+                                            src="${data.response.single_image}" crossorigin="anonymous" loading="lazy" alt="" /></a>
                                                 </div>`
                 }
 
@@ -421,7 +423,7 @@ async function add_comment() {
         commentDiv.classList.add("comment");
         commentDiv.dataset.comment_id = commentResponse.comment_id;
         commentDiv.innerHTML = `
-        <img src="images/users/${commentResponse.user_image}" alt="User Avatar"
+        <img src="${commentResponse.user_image}" crossorigin="anonymous" loading="lazy" alt="User Avatar"
       class="comment-avatar">
       <div class="comment-details">
         <h3 class="comment-author">
@@ -616,7 +618,7 @@ async function create_post(post, i, liked_posts, lastIndex) {
     const feed_title = document.createElement("div");
     feed_title.classList.add("feed_title");
     feed_title.innerHTML = `<a href="/users/${post.username}">
-    <img src="images/users/${post.user_image}" alt="" /></a>
+    <img src="${post.user_image}" crossorigin="anonymous" loading="lazy" alt="" /></a>
 <span><b>
 ${post.username}
     </b> Shared a <a href="/posts/post/${post.post_id}">Post<br>
@@ -638,8 +640,8 @@ ${post.post_content}
         const imagesDiv = document.createElement("div");
         imagesDiv.classList.add("feed_content_image");
         imagesDiv.innerHTML = ` <a href="/posts/post/${post.post_id}"><img
-    src="images/posts/${post.single_image.img_src || post.single_image}"
-    alt="" /></a>`;
+    src="${post.single_image.img_src || post.single_image}"
+    alt="" crossorigin="anonymous" loading="lazy"/></a>`;
         feed_content.appendChild(imagesDiv);
     }
     const feed_footer = document.createElement("div");

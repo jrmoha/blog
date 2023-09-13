@@ -1,13 +1,16 @@
-import userModel from '../models/user.model';
 import { Request, Response } from 'express';
-import Post from '../types/post.type';
-import postModel from '../models/post.model';
 import jwt from 'jsonwebtoken';
+import cloudinary from '../services/cloudinary';
+import fs from 'fs';
+import userModel from '../models/user.model';
+import postModel from '../models/post.model';
+import Post from '../types/post.type';
 import config from '../utils/config';
 import Activity from '../types/activity.type';
 import User from '../types/user.type';
 import { addBasicDataToPosts } from '../utils/functions';
 import notFoundMiddleware from '../middleware/notFound.middleware';
+
 export const getFeed = async (req: Request, res: Response) => {
   try {
     const username = req?.user;
@@ -24,6 +27,7 @@ export const getFeed = async (req: Request, res: Response) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 export const friends = async (req: Request, res: Response) => {
   try {
     const username: any = req?.user;
@@ -34,6 +38,7 @@ export const friends = async (req: Request, res: Response) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 export const updateProfilePictureController = async (
   req: Request,
   res: Response
@@ -43,9 +48,16 @@ export const updateProfilePictureController = async (
 
     if (!username) throw new Error('No username');
     if (req?.file) {
+      const cloudinary_response = await cloudinary.uploader.upload(
+        req.file.path,
+        config.cloudinary.options.users
+      );
+      fs.unlink(req.file.path, () => {
+        null;
+      });
       const response = await userModel.insertProfileImage(
         username as string,
-        req.file.filename
+        cloudinary_response.secure_url
       );
       const decoded = jwt.verify(
         req.cookies.jwt,
@@ -67,6 +79,7 @@ export const updateProfilePictureController = async (
     res.status(500).json(error);
   }
 };
+
 export const followController = async (req: Request, res: Response) => {
   try {
     const username = req?.user;
@@ -78,6 +91,7 @@ export const followController = async (req: Request, res: Response) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 export const unfollowController = async (req: Request, res: Response) => {
   try {
     const username = req?.user;
@@ -89,6 +103,7 @@ export const unfollowController = async (req: Request, res: Response) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 export const followersPageController = async (req: Request, res: Response) => {
   try {
     const current_username = req?.user as string;
@@ -136,6 +151,7 @@ export const followingsPageController = async (req: Request, res: Response) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 export const deleteFollowerController = async (req: Request, res: Response) => {
   try {
     const username = req?.user;
@@ -146,6 +162,7 @@ export const deleteFollowerController = async (req: Request, res: Response) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 export const deleteProfilePictureController = async (
   req: Request,
   res: Response
@@ -172,6 +189,7 @@ export const deleteProfilePictureController = async (
     res.status(500).json(error);
   }
 };
+
 export const photosPageController = async (req: Request, res: Response) => {
   try {
     const profile_username = req.params.username;
@@ -186,6 +204,7 @@ export const photosPageController = async (req: Request, res: Response) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 export const activityPageController = async (req: Request, res: Response) => {
   try {
     const username = req?.user;
@@ -210,6 +229,7 @@ export const activityPageController = async (req: Request, res: Response) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 export const settingsPageController = async (req: Request, res: Response) => {
   try {
     const username = req?.user;
@@ -220,6 +240,7 @@ export const settingsPageController = async (req: Request, res: Response) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 export const updateSettingsController = async (req: Request, res: Response) => {
   try {
     const username = req?.user;
@@ -230,6 +251,7 @@ export const updateSettingsController = async (req: Request, res: Response) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 export const loadMoreFeed = async (req: Request, res: Response) => {
   try {
     const username = req?.user as string;
@@ -243,8 +265,9 @@ export const loadMoreFeed = async (req: Request, res: Response) => {
     res.status(500).json({ sucess: false, message: error.message });
   }
 };
+
 export const changePassowrdPageController = async (
-  req: Request,
+  _req: Request,
   res: Response
 ) => {
   try {
@@ -253,6 +276,7 @@ export const changePassowrdPageController = async (
     res.status(500).json({ message: error.message });
   }
 };
+
 export const changePasswordController = async (req: Request, res: Response) => {
   try {
     const username = req?.user as string;
@@ -263,6 +287,7 @@ export const changePasswordController = async (req: Request, res: Response) => {
     res.status(500).json({ sucess: false, message: error.message });
   }
 };
+
 export const profilePageController = async (req: Request, res: Response) => {
   try {
     const current_username: string = req?.user as string;
@@ -296,6 +321,7 @@ export const profilePageController = async (req: Request, res: Response) => {
     notFoundMiddleware(req, res);
   }
 };
+
 export const searchPageController = async (req: Request, res: Response) => {
   try {
     const username = req?.user as string;
@@ -348,6 +374,7 @@ export const historyPageController = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 export const deleteHistoryController = async (req: Request, res: Response) => {
   try {
     const username = req?.user as string;
@@ -358,6 +385,7 @@ export const deleteHistoryController = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 export const clearHistoryController = async (req: Request, res: Response) => {
   try {
     const username = req?.user as string;

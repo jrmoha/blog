@@ -1,5 +1,6 @@
 import multer from 'multer';
 import path from 'path';
+
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
     const path = __dirname + '/../public/images/posts';
@@ -9,6 +10,7 @@ const storage = multer.diskStorage({
     cb(null, `${new Date().getTime() + path.extname(file.originalname)}`);
   },
 });
+
 const upload = multer({
   storage: storage,
   limits: { fieldSize: 800000 },
@@ -27,4 +29,5 @@ const upload = multer({
     return cb(err);
   },
 });
+
 export default upload;
