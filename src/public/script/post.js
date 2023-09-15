@@ -275,7 +275,6 @@ if (publishIcons) {
         inputTag.click();
     });
 }
-//video button
 // document.querySelector(".publish_icons").querySelector("li:nth-child(2)").addEventListener("click", function () {});
 const publishButton = document.querySelector(".publish_icons");
 if (publishButton) {

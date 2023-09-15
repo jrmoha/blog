@@ -39,7 +39,7 @@ async function loadFriends() {
 }
 setInterval(async () => {
     if (document.querySelector(".friends")) { await loadFriends(); }
-}, 1000);
+}, 10000);
 document.querySelectorAll(".follow_button").forEach((btn) => {
     btn.addEventListener("click", async (e) => {
         follow_person(btn, btn.dataset.username);
