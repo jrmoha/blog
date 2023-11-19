@@ -1,12 +1,10 @@
 import express, { Application } from 'express';
 import session from 'express-session';
 import cors from 'cors';
-// import http from 'http';
 import bodyParser from 'body-parser';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
-// import io from './socket';
 import config from './utils/config';
 import authRouter from './routes/authentication.router';
 import postRouter from './routes/post.router';
@@ -15,6 +13,14 @@ import errorMiddleware from './middleware/error.middleware';
 import notFoundMiddleware from './middleware/notFound.middleware';
 
 const app: Application = express();
+
+process.on('unhandledRejection', (reason: any, promise: Promise<unknown>) => {
+  console.log(
+    'Unhandled Rejection at:',
+    promise,
+    '\nReason' + reason.stack || reason
+  );
+});
 
 app.use(express.static(__dirname + '/public'));
 app.use('/users/:username', express.static(__dirname + '/public'));

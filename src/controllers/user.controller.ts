@@ -244,7 +244,7 @@ export const loadMoreFeed = async (req: Request, res: Response) => {
   }
 };
 export const changePassowrdPageController = async (
-  req: Request,
+  _req: Request,
   res: Response
 ) => {
   try {
