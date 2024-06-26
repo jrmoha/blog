@@ -76,7 +76,7 @@ for (let i = 0; i < profilephotospage.length; i++) {
             const new_image_container = document.createElement("div");
             new_image_container.classList.add("image-container");
             new_image_container.innerHTML = `
-                    <img src="" alt="Image 1">
+                    <img src="" crossorigin="anonymous" alt="Image 1">
                     <span class="exit-button">&times;</span>
                 `;
             new_image_gallery.appendChild(new_image_container);

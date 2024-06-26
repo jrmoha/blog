@@ -15,6 +15,21 @@ import config from '../utils/config';
 import Activity from '../types/activity.type';
 
 class userModel {
+  async user_exists(username: string): Promise<boolean> {
+    try {
+      const connection: PoolClient = await db.connect();
+      const query = `SELECT username FROM users WHERE username=$1`;
+      const res = await connection.query(query, [username]);
+      connection.release();
+      return res.rows.length > 0;
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 400,
+      };
+      throw error;
+    }
+  }
   async username_email_taken(
     username: string,
     email: string
@@ -61,7 +76,7 @@ class userModel {
       const connection: PoolClient = await db.connect();
       let query = `INSERT INTO users (username,email,password,first_name,last_name,birth_date) `;
       query += `VALUES ($1,$2,$3,$4,$5,$6) RETURNING username,email,first_name,last_name`;
-      
+
       const hashedPassword = await hashPassword(password);
 
       const { rows } = await connection.query(query, [
@@ -650,8 +665,8 @@ class userModel {
           username,
           `${profile.id}${profile._json.email}`,
           profile._json.email,
-          profile._json.given_name || profile._json.name,
-          profile._json.family_name || profile._json.name,
+          profile._json.given_name || profile._json.name.split(' ')[0],
+          profile._json.family_name || profile._json.name.split(' ').slice(1).join(' '),
           `NOW()`
         );
         const insert_provider: boolean = await this.insertProvider(
@@ -854,7 +869,7 @@ class userModel {
       const query = `SELECT MAX(img_src) AS "img_src" FROM user_image WHERE username=$1`;
       const { rows } = await connection.query(query, [username]);
       connection.release();
-      if (!rows[0].img_src) return config.default_profile_image;
+      if (!rows[0].img_src) return config.default_profile_image as string;
       return rows[0].img_src;
     } catch (err: any) {
       const error: IError = {

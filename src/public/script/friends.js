@@ -16,7 +16,7 @@ async function loadFriends() {
             friendDiv.classList.add("friend-sidebar");
             friendDiv.dataset.username = friend.followed_username;
             friendDiv.style.cursor = "pointer";
-            friendDiv.innerHTML = `<img src="/images/users/${friend.user_image}" alt="" />`;
+            friendDiv.innerHTML = `<img src="${friend.user_image}" crossorigin="anonymous" loading="lazy" alt="" />`;
             const userStatus = document.createElement("div");
             userStatus.classList.add("user-status");
             if (friend.lastseen.current_status === "online") {
@@ -39,7 +39,7 @@ async function loadFriends() {
 }
 setInterval(async () => {
     if (document.querySelector(".friends")) { await loadFriends(); }
-}, 1000);
+}, 10000);
 document.querySelectorAll(".follow_button").forEach((btn) => {
     btn.addEventListener("click", async (e) => {
         follow_person(btn, btn.dataset.username);

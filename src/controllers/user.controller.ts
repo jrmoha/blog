@@ -1,13 +1,15 @@
-import userModel from '../models/user.model';
 import { Request, Response } from 'express';
-import Post from '../types/post.type';
-import postModel from '../models/post.model';
 import jwt from 'jsonwebtoken';
+import cloudinary from '../services/cloudinary';
+import fs from 'fs';
+import userModel from '../models/user.model';
+import postModel from '../models/post.model';
+import Post from '../types/post.type';
 import config from '../utils/config';
 import Activity from '../types/activity.type';
 import User from '../types/user.type';
 import { addBasicDataToPosts } from '../utils/functions';
-import notFoundMiddleware from '../middleware/notFound.middleware';
+
 export const getFeed = async (req: Request, res: Response) => {
   try {
     const username = req?.user;
@@ -16,24 +18,28 @@ export const getFeed = async (req: Request, res: Response) => {
       username as string
     );
     res.locals.liked_posts = liked_posts;
-    res.render('feed', {
-      posts: posts,
+console.log(req.user);
+
+    return res.render('feed', {
+      posts,
       title: 'Feed',
     });
   } catch (error: any) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
+
 export const friends = async (req: Request, res: Response) => {
   try {
     const username: any = req?.user;
     if (!username) throw new Error('No username');
     const friends: any = await userModel.friendsStatus(username);
-    res.json(friends);
+    return res.json(friends);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 };
+
 export const updateProfilePictureController = async (
   req: Request,
   res: Response
@@ -43,9 +49,16 @@ export const updateProfilePictureController = async (
 
     if (!username) throw new Error('No username');
     if (req?.file) {
+      const cloudinary_response = await cloudinary.uploader.upload(
+        req.file.path,
+        config.cloudinary.options.users
+      );
+      fs.unlink(req.file.path, () => {
+        null;
+      });
       const response = await userModel.insertProfileImage(
         username as string,
-        req.file.filename
+        cloudinary_response.secure_url
       );
       const decoded = jwt.verify(
         req.cookies.jwt,
@@ -56,7 +69,7 @@ export const updateProfilePictureController = async (
       res.cookie('jwt', token, {
         httpOnly: true,
       });
-      res.json({
+      return res.json({
         success: true,
         response: { image: response, title: 'Profile Image Updated' },
       });
@@ -67,28 +80,31 @@ export const updateProfilePictureController = async (
     res.status(500).json(error);
   }
 };
+
 export const followController = async (req: Request, res: Response) => {
   try {
     const username = req?.user;
     const friend = req.params.username;
     const response = await userModel.follow(username as string, friend);
-    userModel.addActivity(username as string, `You followed ${friend}`);
-    res.json({ success: response });
+    await userModel.addActivity(username as string, `You followed ${friend}`);
+    return res.json({ success: response });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 };
+
 export const unfollowController = async (req: Request, res: Response) => {
   try {
     const username = req?.user;
     const friend = req.params.username;
     const response = await userModel.unfollow(username as string, friend);
-    userModel.addActivity(username as string, `You Unfollowed ${friend}`);
-    res.json({ success: response });
+    await userModel.addActivity(username as string, `You Unfollowed ${friend}`);
+    return res.json({ success: response });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 };
+
 export const followersPageController = async (req: Request, res: Response) => {
   try {
     const current_username = req?.user as string;
@@ -110,9 +126,12 @@ export const followersPageController = async (req: Request, res: Response) => {
         );
       }
     }
-    res.render('followers', { followers: followers, title: 'Followers' });
+    return res.render('followers', {
+      followers: followers,
+      title: 'Followers',
+    });
   } catch (error: any) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
 
@@ -131,21 +150,26 @@ export const followingsPageController = async (req: Request, res: Response) => {
         );
       }
     }
-    res.render('followings', { followings: followings, title: 'Followings' });
+    return res.render('followings', {
+      followings: followings,
+      title: 'Followings',
+    });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 };
+
 export const deleteFollowerController = async (req: Request, res: Response) => {
   try {
     const username = req?.user;
     const friend = req.params.username;
     const response = await userModel.deleteFollower(username as string, friend);
-    res.json({ success: response });
+    return res.json({ success: response });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 };
+
 export const deleteProfilePictureController = async (
   req: Request,
   res: Response
@@ -164,7 +188,7 @@ export const deleteProfilePictureController = async (
     res.cookie('jwt', token, {
       httpOnly: true,
     });
-    res.json({
+    return res.json({
       success: true,
       response: { image: response, title: 'Profile Image Deleted' },
     });
@@ -172,6 +196,7 @@ export const deleteProfilePictureController = async (
     res.status(500).json(error);
   }
 };
+
 export const photosPageController = async (req: Request, res: Response) => {
   try {
     const profile_username = req.params.username;
@@ -181,11 +206,12 @@ export const photosPageController = async (req: Request, res: Response) => {
     } else {
       res.locals.isOwner = false;
     }
-    res.render('photos', { photos: photos, title: profile_username });
+    return res.render('photos', { photos: photos, title: profile_username });
   } catch (error: any) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
+
 export const activityPageController = async (req: Request, res: Response) => {
   try {
     const username = req?.user;
@@ -200,7 +226,7 @@ export const activityPageController = async (req: Request, res: Response) => {
         .slice(0, 15);
     });
     const pag_count = await userModel.getActivitiesCount(username as string);
-    res.render('activity', {
+    return res.render('activity', {
       activities: activities,
       page: page,
       title: 'Activity',
@@ -210,6 +236,7 @@ export const activityPageController = async (req: Request, res: Response) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 export const settingsPageController = async (req: Request, res: Response) => {
   try {
     const username = req?.user;
@@ -220,6 +247,7 @@ export const settingsPageController = async (req: Request, res: Response) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 export const updateSettingsController = async (req: Request, res: Response) => {
   try {
     const username = req?.user;
@@ -230,6 +258,7 @@ export const updateSettingsController = async (req: Request, res: Response) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 export const loadMoreFeed = async (req: Request, res: Response) => {
   try {
     const username = req?.user as string;
@@ -243,6 +272,7 @@ export const loadMoreFeed = async (req: Request, res: Response) => {
     res.status(500).json({ sucess: false, message: error.message });
   }
 };
+
 export const changePassowrdPageController = async (
   _req: Request,
   res: Response
@@ -253,6 +283,7 @@ export const changePassowrdPageController = async (
     res.status(500).json({ message: error.message });
   }
 };
+
 export const changePasswordController = async (req: Request, res: Response) => {
   try {
     const username = req?.user as string;
@@ -263,6 +294,7 @@ export const changePasswordController = async (req: Request, res: Response) => {
     res.status(500).json({ sucess: false, message: error.message });
   }
 };
+
 export const profilePageController = async (req: Request, res: Response) => {
   try {
     const current_username: string = req?.user as string;
@@ -293,9 +325,10 @@ export const profilePageController = async (req: Request, res: Response) => {
       title: profile.first_name + ' ' + profile.last_name,
     });
   } catch (error: any) {
-    notFoundMiddleware(req, res);
+    res.status(500).json({ message: error.message });
   }
 };
+
 export const searchPageController = async (req: Request, res: Response) => {
   try {
     const username = req?.user as string;
@@ -348,6 +381,7 @@ export const historyPageController = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 export const deleteHistoryController = async (req: Request, res: Response) => {
   try {
     const username = req?.user as string;
@@ -358,6 +392,7 @@ export const deleteHistoryController = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 export const clearHistoryController = async (req: Request, res: Response) => {
   try {
     const username = req?.user as string;

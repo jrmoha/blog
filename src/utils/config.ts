@@ -21,6 +21,7 @@ const {
   CLOUDINARY_CLOUD_NAME,
   CLOUDINARY_API_KEY,
   CLOUDINARY_SECRET,
+  DEFAULT_AVATAR
 } = process.env;
 
 export default {
@@ -52,8 +53,23 @@ export default {
     cloud_name: CLOUDINARY_CLOUD_NAME,
     api_key: CLOUDINARY_API_KEY,
     api_secret: CLOUDINARY_SECRET,
+    url: `https://cloudinary://${CLOUDINARY_API_KEY}:${CLOUDINARY_SECRET}@${CLOUDINARY_CLOUD_NAME}}`,
+    options: {
+      users: {
+        use_filename: true,
+        unique_filename: false,
+        overwrite: true,
+        folder: 'social-network/users',
+      },
+      posts: {
+        use_filename: true,
+        unique_filename: false,
+        overwrite: true,
+        folder: 'social-network/posts',
+      },
+    },
   },
-  default_profile_image: 'default_user.jpg',
+  default_profile_image: DEFAULT_AVATAR,
   lastseen_timeout: 30000,
   trending_num: 10,
   activity_page_size: 15,

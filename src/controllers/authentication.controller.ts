@@ -3,22 +3,28 @@ import userModel from '../models/user.model';
 import jwt from 'jsonwebtoken';
 import config from '../utils/config';
 import postModel from '../models/post.model';
+
 export const loginPageController = async (req: Request, res: Response) => {
-  req.user ? res.redirect('/') : res.render('login');
+  return req.user ? res.redirect('/') : res.render('login');
 };
+
 export const loginController = async (req: Request, res: Response) => {
   try {
     const { username, password } = req.body;
     res.locals.username = username;
     const response = await userModel.authenticateUser(username, password);
-    Promise.allSettled([
+
+    await Promise.allSettled([
       userModel.insertSession(
         req.session.id,
         username,
         req.socket.remoteAddress as string
       ),
       userModel.addActivity(username, 'You Logged In.'),
-    ]);
+    ]).catch((e) => {
+      return res.status(500).json({ error: e.message });
+    });
+
     const info_result = await Promise.all([
       userModel.getCurrentProfileImage(username),
       userModel.getOptions(username),
@@ -48,14 +54,16 @@ export const loginController = async (req: Request, res: Response) => {
       sameSite: 'none',
       maxAge: 1000 * 60 * 60 * 24 * 7,
     });
-    res.redirect('/');
+    return res.redirect('/');
   } catch (err: any) {
     res.render('login', { error_msg: err.message });
   }
 };
+
 export const regPageController = async (req: Request, res: Response) => {
-  req.user ? res.redirect('/') : res.render('registration');
+  return req.user ? res.redirect('/') : res.render('registration');
 };
+
 export const registerController = async (req: Request, res: Response) => {
   try {
     const {
@@ -82,14 +90,17 @@ export const registerController = async (req: Request, res: Response) => {
       last_name,
       `${year}-${month}-${day}`
     );
-    Promise.allSettled([
+    await Promise.allSettled([
       userModel.addActivity(username, 'You Created This Account.'),
       userModel.insertSession(
         req.session.id,
         username,
         req.socket.remoteAddress as string
       ),
-    ]);
+    ]).catch((e) => {
+      return res.status(500).json({ error: e.message });
+    });
+
     const all_info = await Promise.all([
       userModel.getCurrentProfileImage(username),
       userModel.initOptions(username),
@@ -119,11 +130,12 @@ export const registerController = async (req: Request, res: Response) => {
       sameSite: 'none',
       maxAge: 1000 * 60 * 60 * 24 * 7,
     });
-    res.redirect('/');
+    return res.redirect('/');
   } catch (err: any) {
-    res.render('registration', { reg_err: err.message });
+    return res.render('registration', { reg_err: err.message });
   }
 };
+
 export const logoutController = async (req: Request, res: Response) => {
   try {
     res.clearCookie('jwt');
@@ -131,11 +143,12 @@ export const logoutController = async (req: Request, res: Response) => {
       if (err) throw err;
     });
     res.locals = {};
-    res.redirect('/login');
+    return res.redirect('/login');
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 };
+
 export const findOrCreateController = async function verify(
   _accessToken: string,
   _refreshToken: string,
@@ -149,6 +162,7 @@ export const findOrCreateController = async function verify(
     return cb(err, null);
   }
 };
+
 export const providerLoginController = async function (
   req: Request,
   res: Response
@@ -156,7 +170,8 @@ export const providerLoginController = async function (
   try {
     const requestUser = req.user as any;
     if (!requestUser) throw new Error('User Not Found');
-    Promise.all([
+
+    await Promise.all([
       userModel.insertSession(
         req.session.id,
         requestUser.username,
@@ -167,11 +182,13 @@ export const providerLoginController = async function (
         `You Logged In Using ${requestUser.provider}`
       ),
     ]);
+
     const info_result = await Promise.all([
       userModel.getCurrentProfileImage(requestUser.username),
       userModel.getOptions(requestUser.username),
       postModel.getUserLikedPostsAsArray(requestUser.username),
     ]);
+
     const token = jwt.sign(
       {
         user: requestUser.user,
@@ -184,25 +201,26 @@ export const providerLoginController = async function (
     );
     req.user = requestUser.username;
     res.cookie('jwt', token);
-    res.redirect('/');
+    return res.redirect('/');
   } catch (err: any) {
     res.locals.error_msg = err.message;
-    res.redirect('/login');
+    return res.redirect('/login');
   }
 };
+
 export const updateSessionController = async (req: Request, res: Response) => {
   try {
     if (res.locals.user.session) {
       const response = await userModel.updateSessionTime(
         res.locals.user.session
       );
-      res.json({
+      return res.json({
         success: response,
       });
     } else {
       throw new Error('No session');
     }
   } catch (error) {
-    res.status(500).json(error);
+    return res.status(500).json(error);
   }
 };

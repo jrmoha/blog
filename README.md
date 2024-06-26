@@ -92,6 +92,9 @@ GITHUB_CLIENT_SECRET="github client secret"
 GITHUB_CALLBACK_URL="github callback url"
 JWT_SECRET="jwt secret"
 MESSAGE_SECRET="messages encryption secret"
+CLOUDINARY_API_KEY="cloudinary api key"
+CLOUDINARY_SECRET="cloudinary api secret"
+DEFAULT_AVATAR=https://res.cloudinary.com/db3qmksfk/image/upload/v1694620848/social-network/users/default_user.jpg
 ```
 
 ## Usage/Examples
