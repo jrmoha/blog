@@ -28,7 +28,7 @@ export const createPost = async (req: Request, res: Response) => {
     const img_response = await postModel.addImages(response.post_id, img_src);
 
     const hashTags = getHashtags(content);
-    Promise.allSettled([
+    await Promise.allSettled([
       postModel.addHashtags(response.post_id, hashTags),
       userModel.addActivity(username, 'You Created A Post'),
     ]);
@@ -53,7 +53,7 @@ export const editPost = async (req: Request, res: Response) => {
     const { post_id, new_content } = req.body;
     const response: Post = await postModel.editPost(post_id, new_content);
     const hashTags = getHashtags(new_content);
-    Promise.all([
+    await Promise.all([
       postModel.deleteHashtags(post_id), //delete all hashtags associated with the post
       postModel.addHashtags(post_id, hashTags), //insert new hashtags
       userModel.addActivity(response.username, 'You Edited A Post'), //add activity to user

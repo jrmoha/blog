@@ -14,6 +14,10 @@ import notFoundMiddleware from './middleware/notFound.middleware';
 
 const app: Application = express();
 
+process.on('unhandledRejection', (reason, promise) => {
+  console.log('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
 app.use(express.static(__dirname + '/public'));
 app.use('/users/:username', express.static(__dirname + '/public'));
 app.use('/posts/hashtags/:hashtag', express.static(__dirname + '/public'));

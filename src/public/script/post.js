@@ -540,6 +540,7 @@ window.onscroll = async function () {
     }
 };
 async function loadMorePosts() {
+    console.log("loading more posts");
     const skeleton = document.createElement("div");
     skeleton.classList.add("skeleton");
     // skeleton.innerHTML = `

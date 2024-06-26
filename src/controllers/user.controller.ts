@@ -9,7 +9,6 @@ import config from '../utils/config';
 import Activity from '../types/activity.type';
 import User from '../types/user.type';
 import { addBasicDataToPosts } from '../utils/functions';
-import notFoundMiddleware from '../middleware/notFound.middleware';
 
 export const getFeed = async (req: Request, res: Response) => {
   try {
@@ -19,12 +18,14 @@ export const getFeed = async (req: Request, res: Response) => {
       username as string
     );
     res.locals.liked_posts = liked_posts;
-    res.render('feed', {
-      posts: posts,
+console.log(req.user);
+
+    return res.render('feed', {
+      posts,
       title: 'Feed',
     });
   } catch (error: any) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
 
@@ -33,7 +34,7 @@ export const friends = async (req: Request, res: Response) => {
     const username: any = req?.user;
     if (!username) throw new Error('No username');
     const friends: any = await userModel.friendsStatus(username);
-    res.json(friends);
+    return res.json(friends);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
@@ -68,7 +69,7 @@ export const updateProfilePictureController = async (
       res.cookie('jwt', token, {
         httpOnly: true,
       });
-      res.json({
+      return res.json({
         success: true,
         response: { image: response, title: 'Profile Image Updated' },
       });
@@ -85,8 +86,8 @@ export const followController = async (req: Request, res: Response) => {
     const username = req?.user;
     const friend = req.params.username;
     const response = await userModel.follow(username as string, friend);
-    userModel.addActivity(username as string, `You followed ${friend}`);
-    res.json({ success: response });
+    await userModel.addActivity(username as string, `You followed ${friend}`);
+    return res.json({ success: response });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
@@ -97,8 +98,8 @@ export const unfollowController = async (req: Request, res: Response) => {
     const username = req?.user;
     const friend = req.params.username;
     const response = await userModel.unfollow(username as string, friend);
-    userModel.addActivity(username as string, `You Unfollowed ${friend}`);
-    res.json({ success: response });
+    await userModel.addActivity(username as string, `You Unfollowed ${friend}`);
+    return res.json({ success: response });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
@@ -125,9 +126,12 @@ export const followersPageController = async (req: Request, res: Response) => {
         );
       }
     }
-    res.render('followers', { followers: followers, title: 'Followers' });
+    return res.render('followers', {
+      followers: followers,
+      title: 'Followers',
+    });
   } catch (error: any) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
 
@@ -146,7 +150,10 @@ export const followingsPageController = async (req: Request, res: Response) => {
         );
       }
     }
-    res.render('followings', { followings: followings, title: 'Followings' });
+    return res.render('followings', {
+      followings: followings,
+      title: 'Followings',
+    });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
@@ -157,7 +164,7 @@ export const deleteFollowerController = async (req: Request, res: Response) => {
     const username = req?.user;
     const friend = req.params.username;
     const response = await userModel.deleteFollower(username as string, friend);
-    res.json({ success: response });
+    return res.json({ success: response });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
@@ -181,7 +188,7 @@ export const deleteProfilePictureController = async (
     res.cookie('jwt', token, {
       httpOnly: true,
     });
-    res.json({
+    return res.json({
       success: true,
       response: { image: response, title: 'Profile Image Deleted' },
     });
@@ -199,9 +206,9 @@ export const photosPageController = async (req: Request, res: Response) => {
     } else {
       res.locals.isOwner = false;
     }
-    res.render('photos', { photos: photos, title: profile_username });
+    return res.render('photos', { photos: photos, title: profile_username });
   } catch (error: any) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
 
@@ -219,7 +226,7 @@ export const activityPageController = async (req: Request, res: Response) => {
         .slice(0, 15);
     });
     const pag_count = await userModel.getActivitiesCount(username as string);
-    res.render('activity', {
+    return res.render('activity', {
       activities: activities,
       page: page,
       title: 'Activity',
@@ -318,7 +325,7 @@ export const profilePageController = async (req: Request, res: Response) => {
       title: profile.first_name + ' ' + profile.last_name,
     });
   } catch (error: any) {
-    notFoundMiddleware(req, res);
+    res.status(500).json({ message: error.message });
   }
 };
 

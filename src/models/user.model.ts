@@ -15,6 +15,21 @@ import config from '../utils/config';
 import Activity from '../types/activity.type';
 
 class userModel {
+  async user_exists(username: string): Promise<boolean> {
+    try {
+      const connection: PoolClient = await db.connect();
+      const query = `SELECT username FROM users WHERE username=$1`;
+      const res = await connection.query(query, [username]);
+      connection.release();
+      return res.rows.length > 0;
+    } catch (err: any) {
+      const error: IError = {
+        message: err.message,
+        status: err.status || 400,
+      };
+      throw error;
+    }
+  }
   async username_email_taken(
     username: string,
     email: string
